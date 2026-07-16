@@ -97,7 +97,7 @@ h1,h2,h3,.metric-value{font-feature-settings:"tnum" 1,"lnum" 1;}
 .nav-item.active{background:var(--navy-soft); color:var(--gold-soft); font-weight:500; box-shadow:inset 2px 0 0 var(--gold);}
 .nav-item .ic{width:18px; text-align:center;}
 #theme-quick-toggle, #notif-bell{background:var(--navy-soft) !important; color:#D8D3C4;}
-main{flex:1; padding:30px 36px 80px; max-width:1000px;}
+main{flex:1; padding:30px 36px 80px; max-width:1000px; min-width:0;}
 .page{display:none;}
 .page.active{display:block;}
 .page-head{display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:24px; flex-wrap:wrap; gap:12px;}
@@ -793,11 +793,36 @@ function showAuthError(msg){
 }
 function clearAuthError(){ document.getElementById('auth-error').classList.add('hidden'); }
 
+// Turns raw Firebase error codes into messages a user can actually act on.
+function friendlyAuthError(err){
+  const code = err && err.code;
+  switch(code){
+    case 'auth/unauthorized-domain':
+      return 'Google/cloud sign-in isn\'t set up for this app\'s domain yet (the developer needs to add it in the Firebase console). You can still use "Continue without an account" below — your data stays saved on this device.';
+    case 'auth/popup-closed-by-user':
+      return 'Sign-in was closed before finishing — try again.';
+    case 'auth/wrong-password':
+    case 'auth/invalid-credential':
+    case 'auth/user-not-found':
+      return 'Incorrect email or password.';
+    case 'auth/email-already-in-use':
+      return 'An account with this email already exists — try logging in instead.';
+    case 'auth/weak-password':
+      return 'Password should be at least 6 characters.';
+    case 'auth/invalid-email':
+      return 'That doesn\'t look like a valid email address.';
+    case 'auth/network-request-failed':
+      return 'No internet connection — check your network and try again.';
+    default:
+      return (err && err.message) || 'Something went wrong signing in — please try again.';
+  }
+}
+
 function handleGoogleAuth(){
   if(!firebaseReady){ showAuthError('Google sign-in needs Firebase configured — use email/password or "Continue without an account" below instead.'); return; }
   clearAuthError();
   const provider = new firebase.auth.GoogleAuthProvider();
-  fbAuth.signInWithPopup(provider).catch(err=>showAuthError(err.message));
+  fbAuth.signInWithPopup(provider).catch(err=>showAuthError(friendlyAuthError(err)));
 }
 function handleEmailAuth(){
   clearAuthError();
@@ -812,7 +837,7 @@ function handleEmailAuth(){
   const action = isSignup
     ? fbAuth.createUserWithEmailAndPassword(email, password)
     : fbAuth.signInWithEmailAndPassword(email, password);
-  action.catch(err=>showAuthError(err.message));
+  action.catch(err=>showAuthError(friendlyAuthError(err)));
 }
 // ---- Local (no-Firebase) account system ----
 // Stores a simple per-device "account" list in localStorage so login/signup still work
