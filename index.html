@@ -516,6 +516,8 @@ body.force-mobile .fab{ bottom:calc(84px + env(safe-area-inset-bottom, 0px)); ri
     </div>
   </main>
 
+  <div id="exit-toast" class="hidden" style="position:fixed; left:50%; transform:translateX(-50%); bottom:calc(78px + env(safe-area-inset-bottom, 0px)); background:var(--navy); color:#F3EEE1; font-size:12.5px; padding:10px 16px; border-radius:20px; z-index:80; box-shadow:var(--shadow-elevated); white-space:nowrap;">Wapas dabayen band karne ke liye</div>
+
   <div id="bottom-nav">
     <div class="nav-item active" data-page="dashboard" onclick="goTo('dashboard')"><span class="ic">⌂</span>Home</div>
     <div class="nav-item" data-page="history" onclick="goTo('history')"><span class="ic">≡</span>History</div>
@@ -2523,6 +2525,34 @@ if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js').catch(err => console.log('SW registration failed:', err));
   });
 }
+
+// Double-back-press-to-exit (mobile only): first back press shows a toast instead of leaving
+// the app; a second back press within 2 seconds lets the browser/device actually exit.
+(function(){
+  var isMobile = window.matchMedia('(max-width:760px)').matches || ('ontouchstart' in window);
+  if(!isMobile) return;
+
+  var awaitingConfirm = false;
+  var confirmTimer = null;
+
+  history.pushState({appGuard:true}, '');
+
+  window.addEventListener('popstate', function(){
+    if(!awaitingConfirm){
+      awaitingConfirm = true;
+      var toast = document.getElementById('exit-toast');
+      if(toast){
+        toast.classList.remove('hidden');
+        setTimeout(function(){ toast.classList.add('hidden'); }, 2000);
+      }
+      history.pushState({appGuard:true}, '');
+      confirmTimer = setTimeout(function(){ awaitingConfirm = false; }, 2000);
+    }
+    // second press within the window: awaitingConfirm is true, we don't re-push,
+    // so the next back press (or this one bubbling) lets the browser actually exit/close.
+  });
+})();
+
 </script>
 </body>
 </html>
