@@ -1,4 +1,4 @@
-const CACHE_NAME = 'khaata-cache-v5';
+const CACHE_NAME = 'khaata-cache-v6';
 const CORE_ASSETS = ['./index.html', './manifest.json'];
 
 self.addEventListener('install', (event) => {
@@ -18,6 +18,22 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
+  const isHTML = event.request.mode === 'navigate' || event.request.url.endsWith('/index.html') || event.request.url.endsWith('/');
+
+  if (isHTML) {
+    // Network-first for the app shell so updates show up immediately; fall back to cache offline.
+    event.respondWith(
+      fetch(event.request).then((res) => {
+        if (res.ok) {
+          const resClone = res.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, resClone));
+        }
+        return res;
+      }).catch(() => caches.match(event.request))
+    );
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request).then((cached) => {
       return cached || fetch(event.request).then((res) => {
