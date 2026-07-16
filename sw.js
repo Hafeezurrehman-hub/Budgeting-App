@@ -1,4 +1,4 @@
-const CACHE_NAME = 'khaata-cache-v4';
+const CACHE_NAME = 'khaata-cache-v5';
 const CORE_ASSETS = ['./index.html', './manifest.json'];
 
 self.addEventListener('install', (event) => {
