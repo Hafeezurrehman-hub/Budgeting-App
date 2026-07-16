@@ -186,6 +186,8 @@ label.small{font-size:12px; color:var(--ink-soft); display:block; margin-bottom:
   main{padding:20px 16px 90px;}
   .grid-3{grid-template-columns:1fr 1fr;}
   #bottom-nav{display:flex;}
+  .modal-overlay{padding:16px 12px;}
+  .modal{padding:20px;}
 }
 /* Fallback: force mobile layout via JS when the media query doesn't fire
    (e.g. inside webviews/iframes that don't report the real viewport width) */
@@ -193,6 +195,8 @@ body.force-mobile .sidebar{display:none !important;}
 body.force-mobile main{padding:20px 16px 90px !important;}
 body.force-mobile .grid-3{grid-template-columns:1fr 1fr !important;}
 body.force-mobile #bottom-nav{display:flex !important;}
+body.force-mobile .modal-overlay{padding:16px 12px !important;}
+body.force-mobile .modal{padding:20px !important;}
 #bottom-nav{display:none; position:fixed; bottom:0; left:0; right:0; background:var(--navy); border-top:1px solid var(--gold-line); justify-content:space-around; padding:10px 0 calc(10px + env(safe-area-inset-bottom, 0px)) 0; z-index:40;}
 @media (max-width:780px){ .fab{ bottom:calc(84px + env(safe-area-inset-bottom, 0px)); right:20px; z-index:60; } }
 body.force-mobile .fab{ bottom:calc(84px + env(safe-area-inset-bottom, 0px)); right:20px; z-index:60; }
@@ -2311,6 +2315,7 @@ function openTxModal(){
   document.getElementById('tx-datetime').value = tsToDatetimeLocal(Date.now());
   txType = 'expense'; setTxType('expense');
   document.getElementById('tx-modal').classList.add('active'); renderSplitMembers();
+  document.getElementById('tx-modal').scrollTop = 0;
 }
 function editTx(id){
   const t = state.transactions.find(t=>t.id===id); if(!t) return;
@@ -2328,6 +2333,7 @@ function editTx(id){
   renderTxCats(); renderTxAccounts();
   document.getElementById('tx-account').value = t.account;
   document.getElementById('tx-modal').classList.add('active'); renderSplitMembers();
+  document.getElementById('tx-modal').scrollTop = 0;
 }
 function deleteTx(id){
   showConfirm('Delete this transaction?', ()=>{
