@@ -54,10 +54,11 @@
   --shadow-elevated:0 18px 40px -14px rgba(0,0,0,.6);
 }
 *{box-sizing:border-box; margin:0; padding:0;}
+html{overflow-x:hidden; width:100%;}
 body{background:
     radial-gradient(1200px 600px at 90% -10%, var(--gold-line), transparent 60%),
     var(--bg);
-  color:var(--ink); font-family:var(--font-body); min-height:100vh; transition:background .2s ease, color .2s ease; letter-spacing:-.005em;}
+  color:var(--ink); font-family:var(--font-body); min-height:100vh; overflow-x:hidden; width:100%; overscroll-behavior-y:none; touch-action:pan-y; transition:background .2s ease, color .2s ease; letter-spacing:-.005em;}
 h1,h2,h3,.metric-value{font-feature-settings:"tnum" 1,"lnum" 1;}
 .card, .sidebar, .modal, .login-card, .tx-ic, .acc-ic, .envelope{transition:background .2s ease, border-color .2s ease;}
 .hidden{display:none !important;}
