@@ -194,6 +194,8 @@ body.force-mobile main{padding:20px 16px 90px !important;}
 body.force-mobile .grid-3{grid-template-columns:1fr 1fr !important;}
 body.force-mobile #bottom-nav{display:flex !important;}
 #bottom-nav{display:none; position:fixed; bottom:0; left:0; right:0; background:var(--navy); border-top:1px solid var(--gold-line); justify-content:space-around; padding:10px 0; z-index:40;}
+@media (max-width:780px){ .fab{ bottom:78px; right:20px; z-index:45; } }
+body.force-mobile .fab{ bottom:78px; right:20px; z-index:45; }
 #bottom-nav .nav-item{flex-direction:column; gap:2px; font-size:10px; background:none !important; color:#8B8778;}
 #bottom-nav .nav-item.active{color:var(--gold-soft); box-shadow:none;}
 #bottom-nav .ic{font-size:19px;}
@@ -228,7 +230,7 @@ body.force-mobile #bottom-nav{display:flex !important;}
 <div id="app">
   <div class="sidebar">
     <div class="brand" style="justify-content:space-between">
-      <div style="display:flex; align-items:center; gap:10px"><div class="mark">K</div><span>Budgeting App</span></div>
+      <div style="display:flex; align-items:center; gap:10px"><div class="mark">B</div><span>Budgeting App</span></div>
       <div style="display:flex; align-items:center; gap:6px">
         <div id="theme-quick-toggle" onclick="toggleDark()" title="Toggle light/dark theme" style="cursor:pointer; width:32px; height:32px; border-radius:9px; background:var(--surface-2); display:flex; align-items:center; justify-content:center; font-size:14px">🌙</div>
         <div id="notif-bell" onclick="openNotifPanel()" style="position:relative; cursor:pointer; width:32px; height:32px; border-radius:9px; background:var(--surface-2); display:flex; align-items:center; justify-content:center; font-size:15px">
