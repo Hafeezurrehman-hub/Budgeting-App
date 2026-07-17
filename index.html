@@ -110,7 +110,7 @@ main{flex:1; padding:30px 36px 80px; max-width:1000px; min-width:0;}
 .grid-3{display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:24px;}
 .grid-2{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
 .metric-label{font-size:11.5px; color:var(--ink-soft); margin-bottom:7px; text-transform:uppercase; letter-spacing:.05em;}
-.metric-value{font-family:var(--font-mono); font-size:25px; font-weight:500; letter-spacing:-.01em;}
+.metric-value{font-family:var(--font-mono); font-size:25px; font-weight:500; letter-spacing:-.01em; overflow-wrap:break-word; word-break:break-word;}
 .metric-value.pos{color:var(--green);}
 .metric-value.neg{color:var(--coral);}
 
@@ -192,6 +192,8 @@ label.small{font-size:12px; color:var(--ink-soft); display:block; margin-bottom:
   .sidebar{display:none;}
   main{padding:20px 16px 90px;}
   .grid-3{grid-template-columns:1fr 1fr;}
+  .grid-3 > *:nth-child(3):last-child{grid-column:1 / -1; text-align:center;}
+  .metric-value{font-size:21px;}
   .grid-2{grid-template-columns:1fr;}
   #bottom-nav{display:flex;}
   .modal-overlay{padding:16px 12px;}
@@ -202,6 +204,7 @@ label.small{font-size:12px; color:var(--ink-soft); display:block; margin-bottom:
 body.force-mobile .sidebar{display:none !important;}
 body.force-mobile main{padding:20px 16px 90px !important;}
 body.force-mobile .grid-3{grid-template-columns:1fr 1fr !important;}
+body.force-mobile .grid-3 > *:nth-child(3):last-child{grid-column:1 / -1 !important; text-align:center !important;}
 body.force-mobile .grid-2{grid-template-columns:1fr !important;}
 body.force-mobile #bottom-nav{display:flex !important;}
 body.force-mobile .modal-overlay{padding:16px 12px !important;}
@@ -223,12 +226,15 @@ body.force-mobile .fab{ bottom:calc(84px + env(safe-area-inset-bottom, 0px)); ri
     <h1 id="login-title">Welcome back</h1>
     <p class="sub" id="login-sub">Log in to track your budget</p>
     <p id="auth-error" class="hidden" style="font-size:12.5px; color:var(--red); background:var(--red-bg); border-radius:8px; padding:8px 10px; margin-bottom:10px"></p>
+    <div id="signup-fields" class="hidden">
+      <input class="field" id="auth-first-name" placeholder="First name" type="text">
+      <input class="field" id="auth-last-name" placeholder="Last name" type="text">
+      <input class="field" id="auth-phone" placeholder="Phone number" type="tel">
+    </div>
     <input class="field" id="auth-email" placeholder="Email address" type="email">
     <input class="field" id="auth-password" placeholder="Password" type="password">
     <button class="btn btn-primary" onclick="handleEmailAuth()" id="login-btn">Log in</button>
-    <div class="divider"><div class="line"></div><span>or</span><div class="line"></div></div>
-    <div class="btn" onclick="handleGoogleAuth()" id="google-btn">Continue with Google</div>
-    <p class="switch-line">Don't have an account? <a onclick="toggleAuthMode()" id="switch-link">Sign up</a></p>
+    <div class="btn" onclick="toggleAuthMode()" id="switch-btn" style="margin-top:10px; border-color:var(--gold); color:var(--gold); font-weight:600;">Create an account</div>
     <p id="auth-footnote" style="text-align:center; font-size:11px; color:var(--ink-mute); margin-top:16px; line-height:1.5;">Signed in with Firebase — your data syncs to the cloud and follows you across devices.</p>
     <p id="local-only-link" class="hidden" style="text-align:center; font-size:12px; margin-top:10px"><a onclick="continueLocalOnly()" style="color:var(--teal); cursor:pointer; font-weight:500">Continue without an account (local-only, this device only)</a></p>
   </div>
@@ -267,7 +273,7 @@ body.force-mobile .fab{ bottom:calc(84px + env(safe-area-inset-bottom, 0px)); ri
     <!-- DASHBOARD -->
     <div class="page active" id="page-dashboard">
       <div class="page-head">
-        <div><h2 id="dash-greeting">Dashboard</h2><p>Here's where your money stands.</p></div>
+        <div><h2 id="dash-greeting">Dashboard</h2><p id="dash-sub">Here's where your money stands.</p></div>
       </div>
       <div class="grid-3">
         <div class="card metric-card accent-teal">
@@ -441,6 +447,13 @@ body.force-mobile .fab{ bottom:calc(84px + env(safe-area-inset-bottom, 0px)); ri
           <div class="btn" style="width:auto; padding:8px 14px; font-size:12px" onclick="signOutUser()">Log out</div>
         </div>
       </div>
+
+      <div class="section-title">Budget profiles</div>
+      <div class="card">
+        <p style="font-size:11.5px; color:var(--ink-mute); margin-bottom:10px">Use one login for multiple separate budgets — e.g. "Personal" and "Business". Each profile has its own accounts, transactions, budgets, and goals.</p>
+        <div id="profile-list"></div>
+      </div>
+      <button class="btn" style="margin-top:10px" onclick="addProfile()">+ New profile</button>
 
       <div class="section-title">Accounts</div>
       <div class="card" id="account-list"></div>
@@ -674,11 +687,15 @@ const firebaseConfig = {
   appId: "1:246861573657:web:597f1e5eadcceda9cc0488"
 };
 let fbApp, fbAuth, fbDb, currentUser = null, cloudSaveTimer = null;
+let profiles = {}, activeProfileId = null;
 const firebaseReady = firebaseConfig.apiKey !== "YOUR_API_KEY";
 if(firebaseReady){
   fbApp = firebase.initializeApp(firebaseConfig);
   fbAuth = firebase.auth();
   fbDb = firebase.firestore();
+  // Catches the user coming back from the signInWithRedirect fallback (used when the popup
+  // flow is blocked/unsupported, e.g. inside embedded or sandboxed browsers).
+  fbAuth.getRedirectResult().catch(err=>showAuthError(friendlyAuthError(err)));
 }
 
 let state = null;
@@ -724,6 +741,78 @@ function applyMigrations(s){
   if(!s.accounts || s.accounts.length===0){ s.accounts=[{id:'a'+Date.now(), name:'Cash', type:'cash', currency:s.currency, balance:0}]; }
   return s;
 }
+// ---- Multiple budget profiles (e.g. "Personal" + "Business") under one login ----
+// Storage shape is now { profiles: { id: {name, data: <old flat state shape>} }, activeProfileId }.
+// wrapLegacy migrates old single-state saves (no .profiles wrapper) into this shape transparently.
+function wrapLegacy(raw){
+  if(raw && raw.profiles && raw.activeProfileId) return raw;
+  if(raw && (raw.transactions || raw.accounts || raw.budgets)){
+    return { profiles: { p1: { name:'Personal', data: raw } }, activeProfileId:'p1' };
+  }
+  return { profiles: { p1: { name:'Personal', data: defaultState() } }, activeProfileId:'p1' };
+}
+function activateProfiles(raw){
+  const w = wrapLegacy(raw);
+  profiles = w.profiles;
+  activeProfileId = w.activeProfileId;
+  if(!profiles[activeProfileId]) activeProfileId = Object.keys(profiles)[0];
+  state = applyMigrations(profiles[activeProfileId].data || defaultState());
+}
+function renderProfileSwitcher(){
+  const el = document.getElementById('profile-list');
+  if(!el) return;
+  el.innerHTML = Object.entries(profiles).map(([id,p])=>`
+    <div class="list-item" style="padding:9px 0">
+      <span style="font-size:13px; font-weight:${id===activeProfileId?'600':'400'}">${id===activeProfileId?'✓ ':''}${p.name}</span>
+      <div style="display:flex; align-items:center; gap:6px">
+        ${id!==activeProfileId ? `<span class="chip" style="padding:5px 10px" onclick="switchProfile('${id}')">Switch</span>` : ''}
+        <span class="chip" style="padding:5px 9px" title="Rename" onclick="renameProfile('${id}')">✎</span>
+        ${Object.keys(profiles).length>1 ? `<span class="chip" style="padding:5px 9px; color:var(--red); border-color:var(--red)" title="Delete" onclick="deleteProfile('${id}')">🗑</span>` : ''}
+      </div>
+    </div>`).join('');
+}
+function addProfile(){
+  openFormModal({
+    title:'New budget profile',
+    fields:[{key:'name', label:'Profile name', placeholder:'e.g. Business', required:true}],
+    onSave(v){
+      const id = 'p'+Date.now();
+      profiles[id] = { name:v.name, data: defaultState() };
+      switchProfile(id);
+    }
+  });
+}
+function renameProfile(id){
+  const p = profiles[id]; if(!p) return;
+  openFormModal({
+    title:'Rename profile',
+    fields:[{key:'name', label:'Profile name', value:p.name, required:true}],
+    onSave(v){ p.name=v.name; save(); renderProfileSwitcher(); }
+  });
+}
+function switchProfile(id){
+  if(!profiles[id] || id===activeProfileId) return;
+  if(activeProfileId && profiles[activeProfileId]) profiles[activeProfileId].data = state;
+  activeProfileId = id;
+  state = applyMigrations(profiles[id].data || defaultState());
+  save();
+  renderAll();
+  renderProfileSwitcher();
+}
+function deleteProfile(id){
+  if(Object.keys(profiles).length<=1) return;
+  const p = profiles[id]; if(!p) return;
+  showConfirm(`Delete the "${p.name}" profile? All its transactions, budgets, and goals will be permanently deleted.`, ()=>{
+    delete profiles[id];
+    if(activeProfileId===id){
+      activeProfileId = Object.keys(profiles)[0];
+      state = applyMigrations(profiles[activeProfileId].data || defaultState());
+      renderAll();
+    }
+    save();
+    renderProfileSwitcher();
+  });
+}
 // Local-only fallback storage key (used when Firebase isn't configured, and as an offline cache
 // once signed in so the app still opens instantly and works without a connection).
 function loadLocalCache(){
@@ -731,7 +820,8 @@ function loadLocalCache(){
   return raw ? JSON.parse(raw) : null;
 }
 function save(){
-  localStorage.setItem('khaata_state', JSON.stringify(state));
+  if(activeProfileId && profiles[activeProfileId]) profiles[activeProfileId].data = state;
+  localStorage.setItem('khaata_state', JSON.stringify({ profiles, activeProfileId }));
   saveLocalUserState();
   scheduleCloudSave();
 }
@@ -742,7 +832,7 @@ function scheduleCloudSave(){
   clearTimeout(cloudSaveTimer);
   setSyncStatus('syncing');
   cloudSaveTimer = setTimeout(()=>{
-    fbDb.collection('users').doc(currentUser.uid).set(state)
+    fbDb.collection('users').doc(currentUser.uid).set({ profiles, activeProfileId }, { merge:true })
       .then(()=>setSyncStatus('synced'))
       .catch(err=>{ console.error('Cloud save failed:', err); setSyncStatus('offline'); });
   }, 800);
@@ -798,9 +888,13 @@ function friendlyAuthError(err){
   const code = err && err.code;
   switch(code){
     case 'auth/unauthorized-domain':
-      return 'Google/cloud sign-in isn\'t set up for this app\'s domain yet (the developer needs to add it in the Firebase console). You can still use "Continue without an account" below — your data stays saved on this device.';
+      return 'This site\'s domain isn\'t added to the Firebase project\'s allowed list yet, so Google sign-in is blocked. Fix: open the Firebase console → Authentication → Settings → Authorized domains → Add domain, and add the exact domain shown in this browser\'s address bar. Until then, use email/password or "Continue without an account" below.';
     case 'auth/popup-closed-by-user':
       return 'Sign-in was closed before finishing — try again.';
+    case 'auth/popup-blocked':
+    case 'auth/operation-not-supported-in-this-environment':
+    case 'auth/cancelled-popup-request':
+      return 'The sign-in popup was blocked or isn\'t supported here — redirecting you to Google instead.';
     case 'auth/wrong-password':
     case 'auth/invalid-credential':
     case 'auth/user-not-found':
@@ -822,7 +916,17 @@ function handleGoogleAuth(){
   if(!firebaseReady){ showAuthError('Google sign-in needs Firebase configured — use email/password or "Continue without an account" below instead.'); return; }
   clearAuthError();
   const provider = new firebase.auth.GoogleAuthProvider();
-  fbAuth.signInWithPopup(provider).catch(err=>showAuthError(friendlyAuthError(err)));
+  fbAuth.signInWithPopup(provider).catch(err=>{
+    const code = err && err.code;
+    // Popups get blocked in a lot of embedded browsers / sandboxed previews — fall back to a
+    // full-page redirect flow instead of just showing an error in those cases.
+    if(code==='auth/popup-blocked' || code==='auth/operation-not-supported-in-this-environment' || code==='auth/cancelled-popup-request'){
+      showAuthError(friendlyAuthError(err));
+      fbAuth.signInWithRedirect(provider).catch(err2=>showAuthError(friendlyAuthError(err2)));
+      return;
+    }
+    showAuthError(friendlyAuthError(err));
+  });
 }
 function handleEmailAuth(){
   clearAuthError();
@@ -830,12 +934,26 @@ function handleEmailAuth(){
   const password = document.getElementById('auth-password').value;
   if(!email || !password){ showAuthError('Enter both email and password.'); return; }
   const isSignup = document.getElementById('login-btn').textContent === 'Sign up';
+  let profile = null;
+  if(isSignup){
+    const firstName = document.getElementById('auth-first-name').value.trim();
+    const lastName = document.getElementById('auth-last-name').value.trim();
+    const phone = document.getElementById('auth-phone').value.trim();
+    if(!firstName || !lastName || !phone){ showAuthError('Please fill in first name, last name, and phone number.'); return; }
+    profile = { firstName, lastName, phone };
+  }
   if(!firebaseReady){
-    handleLocalEmailAuth(email, password, isSignup);
+    handleLocalEmailAuth(email, password, isSignup, profile);
     return;
   }
   const action = isSignup
-    ? fbAuth.createUserWithEmailAndPassword(email, password)
+    ? fbAuth.createUserWithEmailAndPassword(email, password).then(cred=>{
+        return cred.user.updateProfile({ displayName: `${profile.firstName} ${profile.lastName}` }).then(()=>{
+          return fbDb.collection('users').doc(cred.user.uid).set({
+            profile: { firstName: profile.firstName, lastName: profile.lastName, phone: profile.phone, email }
+          }, { merge:true });
+        });
+      })
     : fbAuth.signInWithEmailAndPassword(email, password);
   action.catch(err=>showAuthError(friendlyAuthError(err)));
 }
@@ -851,23 +969,34 @@ function localHash(str){ // tiny non-cryptographic hash, just to avoid storing p
   for(let i=0;i<str.length;i++){ h = (Math.imul(31,h) + str.charCodeAt(i)) | 0; }
   return String(h);
 }
-function handleLocalEmailAuth(email, password, isSignup){
+// Migrates an old per-device local user record (single `.state`) into the new `.profiles` shape.
+function migrateLocalUserRecord(u){
+  if(u.profiles && u.activeProfileId) return u;
+  const flat = u.state || defaultState();
+  const migrated = { ...u, profiles: { p1: { name:'Personal', data: flat } }, activeProfileId:'p1' };
+  delete migrated.state;
+  return migrated;
+}
+function handleLocalEmailAuth(email, password, isSignup, profile){
   const users = loadLocalUsers();
   const key = email.toLowerCase();
   if(isSignup){
     if(users[key]){ showAuthError('An account with this email already exists — try logging in instead.'); return; }
-    users[key] = { passwordHash: localHash(password), state: defaultState() };
+    users[key] = { passwordHash: localHash(password), profiles: { p1: { name:'Personal', data: defaultState() } }, activeProfileId:'p1', profile: profile || null };
     saveLocalUsers(users);
     localStorage.setItem('khaata_current_local_user', key);
-    currentUser = { email, local:true };
-    state = applyMigrations(users[key].state);
+    currentUser = { email, local:true, displayName: profile ? `${profile.firstName} ${profile.lastName}` : '', profile };
+    activateProfiles(users[key]);
     enterApp();
   } else {
-    const u = users[key];
+    let u = users[key];
     if(!u || u.passwordHash !== localHash(password)){ showAuthError('Incorrect email or password.'); return; }
+    u = migrateLocalUserRecord(u);
+    users[key] = u;
+    saveLocalUsers(users);
     localStorage.setItem('khaata_current_local_user', key);
-    currentUser = { email, local:true };
-    state = applyMigrations(u.state);
+    currentUser = { email, local:true, displayName: u.profile ? `${u.profile.firstName} ${u.profile.lastName}` : '', profile: u.profile || null };
+    activateProfiles(u);
     enterApp();
   }
 }
@@ -876,7 +1005,10 @@ function saveLocalUserState(){
   if(!key) return;
   const users = loadLocalUsers();
   if(!users[key]) return;
-  users[key].state = state;
+  if(activeProfileId && profiles[activeProfileId]) profiles[activeProfileId].data = state;
+  users[key].profiles = profiles;
+  users[key].activeProfileId = activeProfileId;
+  delete users[key].state;
   saveLocalUsers(users);
 }
 function signOutUser(){
@@ -895,23 +1027,23 @@ function signOutUser(){
 function initForUser(user){
   currentUser = user;
   const cached = loadLocalCache();
-  if(cached){ state = applyMigrations(cached); enterApp(); } // show something instantly if we have it
+  if(cached){ activateProfiles(cached); enterApp(); } // show something instantly if we have it
   fbDb.collection('users').doc(user.uid).get().then(doc=>{
     if(doc.exists){
-      state = applyMigrations(doc.data());
+      activateProfiles(doc.data());
     } else if(!cached){
-      state = defaultState();
-      fbDb.collection('users').doc(user.uid).set(state);
+      activateProfiles(null);
+      fbDb.collection('users').doc(user.uid).set({ profiles, activeProfileId }, { merge:true });
     } else {
       // First time this account has synced from this device but a cloud doc doesn't exist yet
       // (e.g. was local-only before signing in) — seed the cloud with what we have locally.
-      fbDb.collection('users').doc(user.uid).set(state);
+      fbDb.collection('users').doc(user.uid).set({ profiles, activeProfileId }, { merge:true });
     }
     setSyncStatus('synced');
     enterApp();
   }).catch(err=>{
     console.error('Cloud load failed, using local cache if available:', err);
-    if(!cached){ state = defaultState(); enterApp(); }
+    if(!cached){ activateProfiles(null); enterApp(); }
     setSyncStatus('offline');
   });
 }
@@ -929,16 +1061,18 @@ if(firebaseReady){
   const savedLocalKey = localStorage.getItem('khaata_current_local_user');
   const users = loadLocalUsers();
   if(savedLocalKey && users[savedLocalKey]){
-    currentUser = { email: savedLocalKey, local:true };
-    state = applyMigrations(users[savedLocalKey].state);
+    const u = migrateLocalUserRecord(users[savedLocalKey]);
+    users[savedLocalKey] = u;
+    saveLocalUsers(users);
+    currentUser = { email: savedLocalKey, local:true, displayName: u.profile ? `${u.profile.firstName} ${u.profile.lastName}` : '', profile: u.profile || null };
+    activateProfiles(u);
     enterApp();
   } else {
     showLogin();
   }
 }
 function continueLocalOnly(){
-  state = loadLocalCache() || defaultState();
-  applyMigrations(state);
+  activateProfiles(loadLocalCache());
   enterApp();
 }
 function toggleAlertSetting(){
@@ -964,7 +1098,9 @@ function toggleAuthMode(){
   t.textContent = isLogin ? 'Create account' : 'Welcome back';
   document.getElementById('login-sub').textContent = isLogin ? 'Start tracking your budget today' : 'Log in to track your budget';
   document.getElementById('login-btn').textContent = isLogin ? 'Sign up' : 'Log in';
-  document.getElementById('switch-link').textContent = isLogin ? 'Log in' : 'Sign up';
+  document.getElementById('switch-btn').textContent = isLogin ? 'Already have an account? Log in' : 'Create an account';
+  document.getElementById('signup-fields').classList.toggle('hidden', !isLogin);
+  clearAuthError();
 }
 
 function goTo(page){
@@ -995,6 +1131,7 @@ function renderAll(){
   renderDashboard(); renderHistory(); renderBudgets(); renderGoals();
   renderAccounts(); renderBills(); renderRecurring(); renderTxCats(); renderTxAccounts();
   renderBankList(); renderFamily(); renderInsights(); renderBackupInfo();
+  renderProfileSwitcher();
   document.getElementById('currency-select').value = state.currency==='Rs'?'Rs':state.currency;
 }
 
@@ -1031,8 +1168,11 @@ function renderDashboard(){
   const greeting = hour<12 ? 'Good morning' : hour<17 ? 'Good afternoon' : 'Good evening';
   const nameSource = currentUser ? (currentUser.displayName || currentUser.email || '') : '';
   const firstName = nameSource.includes('@') ? '' : (nameSource.split(' ')[0] || '');
+  const fullName = nameSource.includes('@') ? '' : nameSource;
   const greetEl = document.getElementById('dash-greeting');
   if(greetEl) greetEl.textContent = firstName ? `${greeting}, ${firstName}` : greeting;
+  const subEl = document.getElementById('dash-sub');
+  if(subEl) subEl.textContent = fullName ? fullName : "Here's where your money stands.";
 
   const income = monthTx('income').reduce((s,t)=>s+txAmt(t),0);
   const expense = monthTx('expense').reduce((s,t)=>s+txAmt(t),0);
@@ -1049,11 +1189,17 @@ function renderDashboard(){
       limit = baseLimit + cumulativeCarry(cat, baseLimit);
     }
     const spent = monthTx('expense').filter(t=>t.cat===cat).reduce((s,t)=>s+txAmt(t),0);
-    const pct = Math.min(100, Math.round(spent/limit*100));
+    const pct = limit>0 ? Math.min(100, Math.round(spent/limit*100)) : (spent>0 ? 100 : 0);
     const over = spent>limit;
     const c = CATS.find(c=>c.id===cat);
     env.innerHTML += `<div class="envelope ${over?'over':''}">
-      <div class="envelope-top"><span class="cat">${c?c.ic:'⋯'} ${c?c.name:cat}</span><span class="num" style="color:${over?'var(--red)':'var(--ink-soft)'}">${fmt(spent)} / ${fmt(limit)}</span></div>
+      <div class="envelope-top"><span class="cat">${c?c.ic:'⋯'} ${c?c.name:cat}</span>
+        <span style="display:flex; align-items:center; gap:6px">
+          <span class="num" style="color:${over?'var(--red)':'var(--ink-soft)'}">${fmt(spent)} / ${fmt(limit)}</span>
+          <span class="chip" style="padding:4px 8px" title="Edit" onclick="editEnvelope('${cat}')">✎</span>
+          <span class="chip" style="padding:4px 8px; color:var(--red); border-color:var(--red)" title="Delete" onclick="deleteEnvelope('${cat}')">🗑</span>
+        </span>
+      </div>
       <div class="bar-track"><div class="bar-fill" style="width:${pct}%; background:${over?'var(--red)':pct>75?'var(--amber)':'var(--green)'}"></div></div>
       ${state.rolloverEnabled && limit>baseLimit ? `<div style="font-size:10.5px; color:var(--ink-mute); margin-top:4px">Includes ${fmt(limit-baseLimit)} rolled over from past months</div>` : ''}
     </div>`;
@@ -1134,6 +1280,27 @@ function updateBudget(cat, val, el){
   state.budgets[cat]=Number(val);
   el.previousElementSibling.querySelector('.num').textContent = cur(val);
   save();
+  renderDashboard();
+}
+function editEnvelope(cat){
+  const c = CATS.find(c=>c.id===cat);
+  openFormModal({
+    title:`Edit budget — ${c?c.name:cat}`,
+    fields:[
+      {key:'limit', label:'Monthly limit', type:'number', value:state.budgets[cat]||0, required:true}
+    ],
+    onSave(v){
+      state.budgets[cat] = Number(v.limit)||0;
+      save(); renderDashboard(); renderBudgets();
+    }
+  });
+}
+function deleteEnvelope(cat){
+  const c = CATS.find(c=>c.id===cat);
+  showConfirm(`Delete the ${c?c.name:cat} budget envelope? This only removes the budget limit — past transactions stay untouched.`, ()=>{
+    delete state.budgets[cat];
+    save(); renderDashboard(); renderBudgets();
+  });
 }
 function toggleRollover(){
   state.rolloverEnabled = !state.rolloverEnabled;
