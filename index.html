@@ -204,7 +204,25 @@ label.small{font-size:12px; color:var(--ink-soft); display:block; margin-bottom:
   #bottom-nav{display:flex;}
   .modal-overlay{padding:16px 12px;}
   .modal{padding:20px;}
+  /* Fix: zero-based budgeting rows ("More" page) were overflowing off the
+     right edge on narrow screens, clipping the "Assign" button/input. */
+  #zb-assign-list .row-between{flex-wrap:wrap; row-gap:8px;}
+  #zb-assign-list .row-between > div:last-child{flex-wrap:wrap; justify-content:flex-end; width:100%;}
+  #zb-assign-list .row-between input[type=number]{width:70px; min-width:0;}
+  /* Fix: chart cards on the Reports page could render wider than their
+     container on first paint and get clipped by overflow-x:hidden. */
+  #page-reports .card{overflow:hidden; min-width:0;}
+  #page-reports canvas{max-width:100%;}
+  /* Sidebar (and its theme toggle) is hidden on mobile, so surface a
+     standalone light/dark switch on every page instead. */
+  #theme-quick-toggle-mobile{display:flex !important;}
 }
+body.force-mobile #zb-assign-list .row-between{flex-wrap:wrap !important; row-gap:8px !important;}
+body.force-mobile #zb-assign-list .row-between > div:last-child{flex-wrap:wrap !important; justify-content:flex-end !important; width:100% !important;}
+body.force-mobile #zb-assign-list .row-between input[type=number]{width:70px !important; min-width:0 !important;}
+body.force-mobile #page-reports .card{overflow:hidden !important; min-width:0 !important;}
+body.force-mobile #page-reports canvas{max-width:100% !important;}
+body.force-mobile #theme-quick-toggle-mobile{display:flex !important;}
 /* Fallback: force mobile layout via JS when the media query doesn't fire
    (e.g. inside webviews/iframes that don't report the real viewport width) */
 body.force-mobile .sidebar{display:none !important;}
@@ -273,6 +291,8 @@ body.force-mobile .fab{ bottom:calc(84px + env(safe-area-inset-bottom, 0px)); ri
     <div class="nav-item" data-page="more" onclick="goTo('more')"><span class="ic">✦</span>More</div>
     <div class="nav-item" data-page="settings" onclick="goTo('settings')"><span class="ic">⚙</span>Settings</div>
   </div>
+
+  <div id="theme-quick-toggle-mobile" role="button" tabindex="0" aria-label="Toggle light/dark theme" onclick="toggleDark()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleDark()}" title="Toggle light/dark theme" style="display:none; position:fixed; top:calc(14px + env(safe-area-inset-top, 0px)); right:14px; z-index:50; width:40px; height:40px; border-radius:9px; background:var(--surface-2); border:1px solid var(--border); align-items:center; justify-content:center; font-size:15px; cursor:pointer; box-shadow:var(--shadow-card);">🌙</div>
 
   <main>
     <!-- DASHBOARD -->
@@ -942,6 +962,8 @@ function enterApp(){
   document.getElementById('alert-toggle').classList.toggle('on', state.alertEnabled !== false);
   const quickTheme = document.getElementById('theme-quick-toggle');
   if(quickTheme) quickTheme.textContent = state.dark ? '☀️' : '🌙';
+  const quickThemeMobile = document.getElementById('theme-quick-toggle-mobile');
+  if(quickThemeMobile) quickThemeMobile.textContent = state.dark ? '☀️' : '🌙';
   const emailEl = document.getElementById('account-email');
   if(emailEl) emailEl.textContent = currentUser ? (currentUser.email || currentUser.displayName || 'Signed in') : 'Local only (no account)';
   const created = processRecurringTransactions();
@@ -1235,7 +1257,13 @@ function goTo(page){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.getElementById('page-'+page).classList.add('active');
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active', n.dataset.page===page));
-  if(page==='reports') renderCharts();
+  if(page==='reports'){
+    renderCharts();
+    // Re-measure against the page's final layout width once the browser has
+    // finished painting — avoids charts sizing to a stale (too-wide) container
+    // on mobile and getting clipped on the right edge.
+    requestAnimationFrame(()=>{ if(pieChart) pieChart.resize(); if(barChart) barChart.resize(); });
+  }
   if(page==='more') renderMore();
 }
 
@@ -2086,6 +2114,8 @@ function toggleDark(){
   document.getElementById('dark-toggle').classList.toggle('on', state.dark);
   const quick = document.getElementById('theme-quick-toggle');
   if(quick) quick.textContent = state.dark ? '☀️' : '🌙';
+  const quickMobile = document.getElementById('theme-quick-toggle-mobile');
+  if(quickMobile) quickMobile.textContent = state.dark ? '☀️' : '🌙';
 }
 
 function setTextScale(scale){
