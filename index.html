@@ -54,7 +54,13 @@
   --shadow-elevated:0 18px 40px -14px rgba(0,0,0,.6);
 }
 *{box-sizing:border-box; margin:0; padding:0;}
-html{overflow-x:hidden; width:100%;}
+html{overflow-x:hidden; width:100%; zoom:var(--a11y-zoom, 1);}
+:root{--a11y-zoom:1;}
+/* Accessibility: icon-only controls get a real tap target + are reachable by keyboard */
+.icon-chip{min-width:36px; min-height:36px; display:inline-flex; align-items:center; justify-content:center; padding:0 !important;}
+.icon-tap{min-width:40px; min-height:40px; display:inline-flex; align-items:center; justify-content:center;}
+.text-scale-btn{cursor:pointer; border:1px solid var(--border-strong); border-radius:var(--radius); padding:8px 4px; text-align:center; font-family:var(--font-body); background:var(--surface); color:var(--ink);}
+.text-scale-btn.active{background:var(--navy); color:var(--gold-soft); border-color:var(--navy);}
 body{background:
     radial-gradient(1200px 600px at 90% -10%, var(--gold-line), transparent 60%),
     var(--bg);
@@ -229,7 +235,6 @@ body.force-mobile .fab{ bottom:calc(84px + env(safe-area-inset-bottom, 0px)); ri
     <div id="signup-fields" class="hidden">
       <input class="field" id="auth-first-name" placeholder="First name" type="text">
       <input class="field" id="auth-last-name" placeholder="Last name" type="text">
-      <input class="field" id="auth-phone" placeholder="Phone number" type="tel">
     </div>
     <input class="field" id="auth-email" placeholder="Email address" type="email">
     <input class="field" id="auth-password" placeholder="Password" type="password">
@@ -251,9 +256,9 @@ body.force-mobile .fab{ bottom:calc(84px + env(safe-area-inset-bottom, 0px)); ri
     <div class="brand" style="justify-content:space-between">
       <div style="display:flex; align-items:center; gap:10px"><div class="mark">B</div><span>Budgeting App</span></div>
       <div style="display:flex; align-items:center; gap:6px">
-        <div id="theme-quick-toggle" onclick="toggleDark()" title="Toggle light/dark theme" style="cursor:pointer; width:32px; height:32px; border-radius:9px; background:var(--surface-2); display:flex; align-items:center; justify-content:center; font-size:14px">🌙</div>
+        <div id="theme-quick-toggle" role="button" tabindex="0" aria-label="Toggle light/dark theme" onclick="toggleDark()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleDark()}" title="Toggle light/dark theme" class="icon-tap" style="cursor:pointer; min-width:40px; min-height:40px; border-radius:9px; background:var(--surface-2); font-size:14px">🌙</div>
         <div style="position:relative; width:32px; height:32px; min-width:32px;">
-          <div id="notif-bell" onclick="openNotifPanel()" style="cursor:pointer; width:32px; height:32px; min-width:32px; max-width:32px; border-radius:9px; background:var(--surface-2); display:flex; align-items:center; justify-content:center; overflow:hidden; box-sizing:border-box;">
+          <div id="notif-bell" role="button" tabindex="0" aria-label="Open notifications" onclick="openNotifPanel()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openNotifPanel()}" style="cursor:pointer; width:40px; height:40px; min-width:40px; max-width:40px; border-radius:9px; background:var(--surface-2); display:flex; align-items:center; justify-content:center; overflow:hidden; box-sizing:border-box;">
             <span style="display:flex; align-items:center; justify-content:center; width:100%; height:100%; font-size:14px; line-height:32px; transform:scale(0.85); transform-origin:center;">🔔</span>
           </div>
           <span id="notif-badge" class="hidden" onclick="openNotifPanel()" style="position:absolute; top:-4px; right:-4px; cursor:pointer; background:var(--coral); color:#fff; font-size:10px; font-weight:600; min-width:16px; height:16px; border-radius:8px; display:flex; align-items:center; justify-content:center; padding:0 3px">0</span>
@@ -274,17 +279,15 @@ body.force-mobile .fab{ bottom:calc(84px + env(safe-area-inset-bottom, 0px)); ri
     <div class="page active" id="page-dashboard">
       <div class="page-head">
         <div><h2 id="dash-greeting">Dashboard</h2><p id="dash-sub">Here's where your money stands.</p></div>
-        <div style="display:flex; align-items:center; gap:8px">
-          <select class="field" id="dash-profile-select" style="width:auto; min-width:140px; margin-bottom:0; padding:9px 12px; font-size:12.5px; cursor:pointer" onchange="switchProfile(this.value)"></select>
-          <div id="dash-theme-toggle" onclick="toggleDark()" title="Toggle light/dark theme" style="cursor:pointer; width:38px; height:38px; min-width:38px; border-radius:9px; background:var(--surface-2); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:16px">🌙</div>
-        </div>
+        <select class="field" id="dash-profile-select" style="width:auto; min-width:140px; margin-bottom:0; padding:9px 12px; font-size:12.5px; cursor:pointer" onchange="switchProfile(this.value)"></select>
       </div>
       <div class="grid-3">
-        <div class="card metric-card accent-teal">
+        <div class="card metric-card accent-teal" id="m-balance-card">
           <div class="metric-top">
             <div><div class="metric-label">Total balance</div><div class="metric-value num" id="m-balance">0</div></div>
-            <div class="metric-ic" style="background:var(--teal-bg); color:var(--teal)">💰</div>
+            <div class="metric-ic" id="m-balance-ic" style="background:var(--teal-bg); color:var(--teal)">💰</div>
           </div>
+          <div id="m-balance-warning" class="hidden" style="font-size:11px; margin-top:8px; font-weight:600"></div>
         </div>
         <div class="card metric-card accent-green">
           <div class="metric-top">
@@ -299,7 +302,21 @@ body.force-mobile .fab{ bottom:calc(84px + env(safe-area-inset-bottom, 0px)); ri
           </div>
         </div>
       </div>
+      <div class="section-title" style="margin-top:0">Safe to spend today</div>
+      <div class="card metric-card accent-teal" style="margin-bottom:14px">
+        <div class="metric-top">
+          <div><div class="metric-label" id="safe-to-spend-label">What's left this month, spread over the days remaining</div><div class="metric-value num" id="safe-to-spend" style="font-size:26px">0</div></div>
+          <div class="metric-ic" style="background:var(--teal-bg); color:var(--teal)">🛟</div>
+        </div>
+        <div style="font-size:11px; color:var(--ink-mute); margin-top:8px" id="safe-to-spend-sub"></div>
+      </div>
+      <div class="section-title">This month vs last month</div>
+      <div class="card row-between" style="margin-bottom:14px">
+        <div><div class="metric-label">Spending so far</div><div class="metric-value num" id="dash-mom-amt" style="font-size:18px">0</div></div>
+        <span class="chip" id="dash-mom-badge" style="font-weight:600"></span>
+      </div>
       <div class="section-title">Budget envelopes</div>
+      <div style="font-size:11.5px; color:var(--ink-mute); margin:-4px 0 10px">A limit per category, tracked against what you've spent this month. For a fuller check on whether every rupee of income is assigned somewhere, see <a onclick="goTo('more')" style="color:var(--teal); cursor:pointer; font-weight:500">Zero-based budgeting</a> under More.</div>
       <div id="envelopes"></div>
       <div class="section-title-row">
         <div class="section-title">Recent transactions</div>
@@ -354,6 +371,7 @@ body.force-mobile .fab{ bottom:calc(84px + env(safe-area-inset-bottom, 0px)); ri
       <div class="page-head"><div><h2>More</h2><p>Deeper money tools.</p></div></div>
 
       <div class="section-title" style="margin-top:0">Zero-based budgeting</div>
+      <div style="font-size:11.5px; color:var(--ink-mute); margin:-4px 0 10px">Uses the same category limits as your <a onclick="goTo('budgets')" style="color:var(--teal); cursor:pointer; font-weight:500">Budget envelopes</a>, but checks the total: is every rupee of this month's income assigned to a category, or is some left unassigned?</div>
       <div class="card">
         <div class="grid-3" style="margin-bottom:0">
           <div><div class="metric-label">Income this month</div><div class="metric-value num" id="zb-income">0</div></div>
@@ -468,6 +486,17 @@ body.force-mobile .fab{ bottom:calc(84px + env(safe-area-inset-bottom, 0px)); ri
       <div class="section-title">Recent transfers</div>
       <div class="card" id="transfer-list"></div>
 
+      <div class="section-title">Categories</div>
+      <div class="card" id="category-list"></div>
+      <button class="btn" style="margin-top:10px" onclick="addCategory()">+ Add category</button>
+
+      <div class="section-title">Low balance warning</div>
+      <div class="card">
+        <label class="small">Warn me when total balance drops below</label>
+        <input class="field" id="low-balance-input" type="number" min="0" placeholder="0" oninput="setLowBalanceThreshold(this.value)">
+        <p style="font-size:11.5px; color:var(--ink-mute)">The dashboard balance card turns amber below this, and red if your balance goes negative.</p>
+      </div>
+
       <div class="section-title">Primary currency</div>
       <div class="card">
         <select class="field" id="currency-select" style="margin-bottom:8px" onchange="setCurrency(this.value)">
@@ -482,8 +511,18 @@ body.force-mobile .fab{ bottom:calc(84px + env(safe-area-inset-bottom, 0px)); ri
       <div class="section-title">Appearance</div>
       <div class="card row-between">
         <div style="font-size:13px; font-weight:500">Dark mode</div>
-        <div class="toggle" id="dark-toggle" onclick="toggleDark()"><div class="dot"></div></div>
+        <div class="toggle" id="dark-toggle" role="button" tabindex="0" aria-label="Toggle dark mode" onclick="toggleDark()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleDark()}"><div class="dot"></div></div>
       </div>
+      <div class="card" style="margin-top:10px">
+        <div style="font-size:13px; font-weight:500; margin-bottom:4px">Text size</div>
+        <div style="font-size:11.5px; color:var(--ink-mute); margin-bottom:10px">Makes all text in the app bigger, for easier reading.</div>
+        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px" id="text-scale-group" role="group" aria-label="Text size">
+          <div class="text-scale-btn" data-scale="1" onclick="setTextScale(1)" role="button" tabindex="0" aria-label="Text size: Normal" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();setTextScale(1)}">Normal</div>
+          <div class="text-scale-btn" data-scale="1.15" onclick="setTextScale(1.15)" role="button" tabindex="0" aria-label="Text size: Large" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();setTextScale(1.15)}">Large</div>
+          <div class="text-scale-btn" data-scale="1.3" onclick="setTextScale(1.3)" role="button" tabindex="0" aria-label="Text size: Larger" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();setTextScale(1.3)}">Larger</div>
+        </div>
+      </div>
+      <button class="btn" style="margin-top:10px" onclick="onboardingStep=0; renderOnboardingStep(); document.getElementById('onboarding-modal').classList.add('active')">🚀 Replay the welcome tour</button>
 
       <div class="section-title">Data</div>
       <div class="card" style="display:flex; flex-direction:column; gap:10px">
@@ -513,18 +552,19 @@ body.force-mobile .fab{ bottom:calc(84px + env(safe-area-inset-bottom, 0px)); ri
       <div class="section-title">Bank account sync</div>
       <div class="card">
         <div class="row-between" style="margin-bottom:10px">
-          <div><div style="font-size:13px; font-weight:500">Connected banks</div><div style="font-size:11.5px; color:var(--ink-mute)">Demo sync — pulls in sample transactions</div></div>
+          <div><div style="font-size:13px; font-weight:500; display:flex; align-items:center; gap:8px">Connected banks <span style="font-size:11px; font-weight:700; color:var(--amber); background:var(--amber-bg); padding:2px 8px; border-radius:20px; letter-spacing:.02em">DEMO</span></div><div style="font-size:12.5px; color:var(--ink-mute); margin-top:2px">No real bank is connected. This adds sample transactions only — nothing leaves or touches your actual account.</div></div>
           <div class="btn btn-primary" style="width:auto; padding:9px 16px" onclick="connectBank()" id="bank-connect-btn">Connect bank</div>
         </div>
         <div id="bank-list"></div>
       </div>
 
-      <div class="section-title">AI spending insights</div>
+      <div class="section-title">Smart tips</div>
       <div class="card">
-        <div class="row-between" style="margin-bottom:10px">
+        <div class="row-between" style="margin-bottom:2px">
           <div style="font-size:13px; font-weight:500">This month</div>
           <div class="btn" style="width:auto; padding:8px 14px; font-size:12px" onclick="renderInsights()">Refresh</div>
         </div>
+        <div style="font-size:11px; color:var(--ink-mute); margin-bottom:8px">Simple rules based on your own budgets and transactions — not AI-generated.</div>
         <div id="ai-insights" style="display:flex; flex-direction:column; gap:8px"></div>
       </div>
 
@@ -550,7 +590,7 @@ body.force-mobile .fab{ bottom:calc(84px + env(safe-area-inset-bottom, 0px)); ri
     <div class="nav-item" data-page="settings" onclick="goTo('settings')"><span class="ic">⚙</span>Settings</div>
   </div>
 
-  <button class="fab" onclick="openTxModal()">+</button>
+  <button class="fab" aria-label="Add transaction" onclick="openTxModal()">+</button>
 </div>
 
 <!-- ADD TRANSACTION MODAL -->
@@ -593,6 +633,31 @@ body.force-mobile .fab{ bottom:calc(84px + env(safe-area-inset-bottom, 0px)); ri
     <div class="modal-actions">
       <div class="btn" style="flex:1" onclick="closeConfirmModal()">Cancel</div>
       <div class="btn btn-primary" style="flex:1; background:var(--red); border-color:var(--red)" id="confirm-modal-yes">Delete</div>
+    </div>
+  </div>
+</div>
+
+<!-- ALERT MODAL (used instead of window.alert, which is blocked in many embedded/webview contexts) -->
+<div class="modal-overlay" id="alert-modal">
+  <div class="modal" style="max-width:360px">
+    <h3 id="alert-modal-title">Heads up</h3>
+    <p id="alert-modal-msg" style="font-size:13px; color:var(--ink-soft); margin-bottom:16px; white-space:pre-line"></p>
+    <div class="modal-actions">
+      <div class="btn btn-primary" style="flex:1" id="alert-modal-ok" onclick="closeAlertModal()">OK</div>
+    </div>
+  </div>
+</div>
+
+<!-- ONBOARDING TOUR (first-run walkthrough; shown once, tracked via localStorage) -->
+<div class="modal-overlay" id="onboarding-modal">
+  <div class="modal" style="max-width:400px">
+    <div style="font-size:36px; text-align:center; margin-bottom:8px" id="onboarding-icon">👋</div>
+    <h3 id="onboarding-title" style="text-align:center">Welcome</h3>
+    <p id="onboarding-body" style="font-size:13.5px; color:var(--ink-soft); text-align:center; line-height:1.6; margin:10px 0 18px"></p>
+    <div style="display:flex; justify-content:center; gap:6px; margin-bottom:18px" id="onboarding-dots"></div>
+    <div class="modal-actions">
+      <div class="btn" style="flex:1" onclick="onboardingSkip()">Skip</div>
+      <div class="btn btn-primary" style="flex:1" id="onboarding-next-btn" onclick="onboardingNext()">Next</div>
     </div>
   </div>
 </div>
@@ -654,17 +719,20 @@ body.force-mobile .fab{ bottom:calc(84px + env(safe-area-inset-bottom, 0px)); ri
 </div>
 
 <script>
-const CATS = [
-  {id:'food', name:'Food', ic:'🍲'},
-  {id:'transport', name:'Transport', ic:'🚗'},
-  {id:'shopping', name:'Shopping', ic:'🛍'},
-  {id:'rent', name:'Rent', ic:'🏠'},
-  {id:'bills', name:'Bills', ic:'💡'},
-  {id:'health', name:'Health', ic:'⚕'},
-  {id:'fun', name:'Fun', ic:'🎬'},
-  {id:'other', name:'Other', ic:'⋯'}
+// Default starter categories — users can rename, add, or delete their own from Settings.
+// state.categories holds the live, editable list; this is only the seed for brand-new users.
+const DEFAULT_CATEGORIES = [
+  {id:'food', name:'Food', ic:'🍲', color:'#D85A30'},
+  {id:'transport', name:'Transport', ic:'🚗', color:'#378ADD'},
+  {id:'shopping', name:'Shopping', ic:'🛍', color:'#D4537E'},
+  {id:'rent', name:'Rent', ic:'🏠', color:'#7F77DD'},
+  {id:'bills', name:'Bills', ic:'💡', color:'#EF9F27'},
+  {id:'health', name:'Health', ic:'⚕', color:'#639922'},
+  {id:'fun', name:'Fun', ic:'🎬', color:'#5DCAA5'},
+  {id:'other', name:'Other', ic:'⋯', color:'#B4B2A9'}
 ];
-const CAT_COLORS = {food:'#D85A30', transport:'#378ADD', shopping:'#D4537E', rent:'#7F77DD', bills:'#EF9F27', health:'#639922', fun:'#5DCAA5', other:'#B4B2A9'};
+// Palette cycled through for new custom categories so each gets a distinct chart color.
+const NEW_CAT_COLORS = ['#D85A30','#378ADD','#D4537E','#7F77DD','#EF9F27','#639922','#5DCAA5','#9B6FD1','#3AA6A6','#C9A227'];
 
 // ============ Firebase setup ============
 // 1. Go to https://console.firebase.google.com -> create a project.
@@ -713,6 +781,7 @@ let state = null;
 function defaultState(){
   return {
     currency:'Rs', dark:false,
+    categories: DEFAULT_CATEGORIES.map(c=>({...c})),
     accounts:[{id:'a'+Date.now(), name:'Cash', type:'cash', currency:'Rs', balance:0}],
     budgets:{},
     goals:[],
@@ -734,11 +803,16 @@ function defaultState(){
     netWorthHistory:[],
     notifications:[],
     lastDigestWeek:null,
-    lastDigestMonth:null
+    lastDigestMonth:null,
+    lowBalanceThreshold:2000,
+    budgetAlertState:{}
   };
 }
 // Fills in fields that older saved states (local or cloud) may not have.
 function applyMigrations(s){
+  if(!s.categories || !s.categories.length) s.categories = DEFAULT_CATEGORIES.map(c=>({...c}));
+  if(s.lowBalanceThreshold===undefined) s.lowBalanceThreshold = 2000;
+  if(!s.budgetAlertState) s.budgetAlertState = {};
   if(s.debtStrategy===undefined) s.debtStrategy='avalanche';
   if(s.debtExtra===undefined) s.debtExtra=0;
   if(s.transfers===undefined) s.transfers=[];
@@ -780,8 +854,8 @@ function renderProfileSwitcher(){
       <span style="font-size:13px; font-weight:${id===activeProfileId?'600':'400'}">${id===activeProfileId?'✓ ':''}${p.name}</span>
       <div style="display:flex; align-items:center; gap:6px">
         ${id!==activeProfileId ? `<span class="chip" style="padding:5px 10px" onclick="switchProfile('${id}')">Switch</span>` : ''}
-        <span class="chip" style="padding:5px 9px" title="Rename" onclick="renameProfile('${id}')">✎</span>
-        ${Object.keys(profiles).length>1 ? `<span class="chip" style="padding:5px 9px; color:var(--red); border-color:var(--red)" title="Delete" onclick="deleteProfile('${id}')">🗑</span>` : ''}
+        <span class="chip icon-chip" role="button" tabindex="0" aria-label="Rename profile ${p.name}" title="Rename" onclick="renameProfile('${id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();renameProfile('${id}')}">✎</span>
+        ${Object.keys(profiles).length>1 ? `<span class="chip icon-chip" role="button" tabindex="0" aria-label="Delete profile ${p.name}" style="color:var(--red); border-color:var(--red)" title="Delete" onclick="deleteProfile('${id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();deleteProfile('${id}')}">🗑</span>` : ''}
       </div>
     </div>`).join('');
 }
@@ -868,14 +942,13 @@ function enterApp(){
   document.getElementById('alert-toggle').classList.toggle('on', state.alertEnabled !== false);
   const quickTheme = document.getElementById('theme-quick-toggle');
   if(quickTheme) quickTheme.textContent = state.dark ? '☀️' : '🌙';
-  const dashTheme = document.getElementById('dash-theme-toggle');
-  if(dashTheme) dashTheme.textContent = state.dark ? '☀️' : '🌙';
   const emailEl = document.getElementById('account-email');
   if(emailEl) emailEl.textContent = currentUser ? (currentUser.email || currentUser.displayName || 'Signed in') : 'Local only (no account)';
   const created = processRecurringTransactions();
   const autoSaved = processGoalAutoSaves();
   renderAll();
   checkBillReminders();
+  checkAllBudgetAlerts();
   renderNotifBadge();
   checkDigest();
   if(created) console.log('Recurring transactions were auto-created for due dates.');
@@ -888,6 +961,7 @@ function enterApp(){
       if(dirty) renderAll();
     }, 3600000);
   }
+  maybeShowOnboarding();
 }
 function showLogin(){
   document.getElementById('loading-screen').style.display='none';
@@ -954,9 +1028,8 @@ function handleEmailAuth(){
   if(isSignup){
     const firstName = document.getElementById('auth-first-name').value.trim();
     const lastName = document.getElementById('auth-last-name').value.trim();
-    const phone = document.getElementById('auth-phone').value.trim();
-    if(!firstName || !lastName || !phone){ showAuthError('Please fill in first name, last name, and phone number.'); return; }
-    profile = { firstName, lastName, phone };
+    if(!firstName || !lastName){ showAuthError('Please fill in first name and last name.'); return; }
+    profile = { firstName, lastName };
   }
   if(!firebaseReady){
     handleLocalEmailAuth(email, password, isSignup, profile);
@@ -970,7 +1043,7 @@ function handleEmailAuth(){
           currentUser = fbAuth.currentUser;
           if(document.getElementById('app').classList.contains('active')) renderDashboard();
           return fbDb.collection('users').doc(cred.user.uid).set({
-            profile: { firstName: profile.firstName, lastName: profile.lastName, phone: profile.phone, email }
+            profile: { firstName: profile.firstName, lastName: profile.lastName, email }
           }, { merge:true });
         });
       })
@@ -1071,6 +1144,9 @@ function initForUser(user){
     setSyncStatus('offline');
   });
 }
+// "Continue without an account" is always available, whether or not Firebase is configured —
+// forcing signup before first use just gives new users a reason to bounce at step one.
+document.getElementById('local-only-link').classList.remove('hidden');
 if(firebaseReady){
   fbAuth.onAuthStateChanged(user=>{
     if(user){ initForUser(user); }
@@ -1081,7 +1157,6 @@ if(firebaseReady){
   // via a simple per-device local account system (see handleLocalEmailAuth), and there's also
   // a "continue without an account" option below for a single anonymous local profile.
   document.getElementById('auth-footnote').textContent = "Firebase isn't configured — using local, on-this-device accounts instead. Your data won't sync across devices. See the firebaseConfig comment near the top of the script to enable real cloud accounts.";
-  document.getElementById('local-only-link').classList.remove('hidden');
   const savedLocalKey = localStorage.getItem('khaata_current_local_user');
   const users = loadLocalUsers();
   if(savedLocalKey && users[savedLocalKey]){
@@ -1104,16 +1179,45 @@ function toggleAlertSetting(){
   document.getElementById('alert-toggle').classList.toggle('on', state.alertEnabled);
   save();
 }
+// Fires a notification when a category first crosses 80% of its budget (with days remaining
+// in the month, so it's actionable — not just "you're close") and again if it's actually gone
+// over. Each threshold only fires once per category per month via state.budgetAlertState, so
+// adding more transactions afterward doesn't spam repeat notifications.
+function monthKey(){ const d=new Date(); return d.getFullYear()+'-'+d.getMonth(); }
+function daysLeftInMonth(){
+  const d = new Date();
+  const daysInMonth = new Date(d.getFullYear(), d.getMonth()+1, 0).getDate();
+  return daysInMonth - d.getDate();
+}
+function checkAllBudgetAlerts(){
+  Object.keys(state.budgets).forEach(cat=>checkBudgetAlert(cat));
+}
 function checkBudgetAlert(cat){
   if(state.alertEnabled === false) return;
   const limit = state.budgets[cat];
   if(!limit) return;
   const spent = monthTx('expense').filter(t=>t.cat===cat).reduce((s,t)=>s+txAmt(t),0);
+  const c = state.categories.find(c=>c.id===cat);
+  const name = c ? c.name : cat;
+  if(!state.budgetAlertState) state.budgetAlertState = {};
+  const mk = monthKey();
+  let rec = state.budgetAlertState[cat];
+  if(!rec || rec.month!==mk){ rec = {month:mk, warned80:false, warnedOver:false}; state.budgetAlertState[cat] = rec; }
   if(spent > limit){
-    const c = CATS.find(c=>c.id===cat);
-    const msg = `Heads up — you've gone over your ${c?c.name:cat} budget (${cur(spent)} of ${cur(limit)}).`;
+    if(!rec.warnedOver){
+      rec.warnedOver = true;
+      const msg = `Heads up — you've gone over your ${name} budget (${cur(spent)} of ${cur(limit)}).`;
+      pushNotification(msg, 'budget');
+      showAlert(msg);
+      save();
+    }
+  } else if(spent >= limit*0.8 && !rec.warned80){
+    rec.warned80 = true;
+    const daysLeft = daysLeftInMonth();
+    const pct = Math.round(spent/limit*100);
+    const msg = `${pct}% of your ${name} budget used, with ${daysLeft} day${daysLeft===1?'':'s'} left this month.`;
     pushNotification(msg, 'budget');
-    alert(msg);
+    save();
   }
 }
 function toggleAuthMode(){
@@ -1154,9 +1258,11 @@ function txAmt(t){
 function renderAll(){
   renderDashboard(); renderHistory(); renderBudgets(); renderGoals();
   renderAccounts(); renderBills(); renderRecurring(); renderTxCats(); renderTxAccounts();
-  renderBankList(); renderFamily(); renderInsights(); renderBackupInfo();
+  renderBankList(); renderFamily(); renderInsights(); renderBackupInfo(); renderCategories();
   renderProfileSwitcher();
   document.getElementById('currency-select').value = state.currency==='Rs'?'Rs':state.currency;
+  const lowBalEl = document.getElementById('low-balance-input');
+  if(lowBalEl) lowBalEl.value = state.lowBalanceThreshold||0;
 }
 
 function monthTx(type, offset){
@@ -1204,6 +1310,10 @@ function renderDashboard(){
   document.getElementById('m-balance').textContent = cur(totalBalance);
   document.getElementById('m-income').textContent = '+'+cur(income);
   document.getElementById('m-expense').textContent = '-'+cur(expense);
+  renderBalanceWarning(totalBalance);
+
+  renderSafeToSpend();
+  renderDashMoM(expense);
 
   const env = document.getElementById('envelopes');
   env.innerHTML='';
@@ -1215,13 +1325,13 @@ function renderDashboard(){
     const spent = monthTx('expense').filter(t=>t.cat===cat).reduce((s,t)=>s+txAmt(t),0);
     const pct = limit>0 ? Math.min(100, Math.round(spent/limit*100)) : (spent>0 ? 100 : 0);
     const over = spent>limit;
-    const c = CATS.find(c=>c.id===cat);
+    const c = state.categories.find(c=>c.id===cat);
     env.innerHTML += `<div class="envelope ${over?'over':''}">
       <div class="envelope-top"><span class="cat">${c?c.ic:'⋯'} ${c?c.name:cat}</span>
         <span style="display:flex; align-items:center; gap:6px">
           <span class="num" style="color:${over?'var(--red)':'var(--ink-soft)'}">${fmt(spent)} / ${fmt(limit)}</span>
-          <span class="chip" style="padding:4px 8px" title="Edit" onclick="editEnvelope('${cat}')">✎</span>
-          <span class="chip" style="padding:4px 8px; color:var(--red); border-color:var(--red)" title="Delete" onclick="deleteEnvelope('${cat}')">🗑</span>
+          <span class="chip icon-chip" role="button" tabindex="0" aria-label="Edit ${cat} budget" title="Edit" onclick="editEnvelope('${cat}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();editEnvelope('${cat}')}">✎</span>
+          <span class="chip icon-chip" role="button" tabindex="0" aria-label="Delete ${cat} budget" style="color:var(--red); border-color:var(--red)" title="Delete" onclick="deleteEnvelope('${cat}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();deleteEnvelope('${cat}')}">🗑</span>
         </span>
       </div>
       <div class="bar-track"><div class="bar-fill" style="width:${pct}%; background:${over?'var(--red)':pct>75?'var(--amber)':'var(--green)'}"></div></div>
@@ -1235,14 +1345,110 @@ function renderDashboard(){
     env.innerHTML = '<p style="color:var(--ink-mute); font-size:13px">No budgets set yet — head to the Budgets tab to set your own.</p>';
   }
 }
+// "Safe to spend today" = what's left of this month's discretionary money, spread evenly over
+// the days remaining in the month. Uses budget envelopes (remaining limit, rollover-aware) when
+// set, or income-minus-spent as a fallback for users without budgets yet. Bills due later this
+// month are set aside first since that money is already committed, not really "safe to spend".
+function computeSafeToSpend(){
+  const now = new Date();
+  const daysInMonth = new Date(now.getFullYear(), now.getMonth()+1, 0).getDate();
+  const daysLeft = Math.max(1, daysInMonth - now.getDate() + 1);
+  const hasBudgets = Object.keys(state.budgets).length>0;
+  let remaining;
+  if(hasBudgets){
+    remaining = Object.entries(state.budgets).reduce((sum,[cat,baseLimit])=>{
+      const limit = state.rolloverEnabled ? baseLimit + cumulativeCarry(cat, baseLimit) : baseLimit;
+      const spent = monthTx('expense').filter(t=>t.cat===cat).reduce((s,t)=>s+txAmt(t),0);
+      return sum + Math.max(0, limit-spent);
+    }, 0);
+  } else {
+    const income = monthTx('income').reduce((s,t)=>s+txAmt(t),0);
+    const expense = monthTx('expense').reduce((s,t)=>s+txAmt(t),0);
+    remaining = Math.max(0, income-expense);
+  }
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const monthEnd = new Date(now.getFullYear(), now.getMonth()+1, 1).getTime();
+  const upcomingBills = state.bills.filter(b=>{
+    if(!b.due) return false;
+    const d = new Date(b.due).getTime();
+    return d>=todayStart && d<monthEnd;
+  }).reduce((s,b)=>s+(Number(b.amount)||0), 0);
+  const pool = Math.max(0, remaining-upcomingBills);
+  return { safeToday: pool/daysLeft, daysLeft, hasBudgets, upcomingBills };
+}
+function renderSafeToSpend(){
+  const el = document.getElementById('safe-to-spend');
+  const sub = document.getElementById('safe-to-spend-sub');
+  const label = document.getElementById('safe-to-spend-label');
+  if(!el || !sub) return;
+  const { safeToday, daysLeft, hasBudgets, upcomingBills } = computeSafeToSpend();
+  el.textContent = cur(safeToday);
+  label.textContent = hasBudgets
+    ? `What's left across your budgets, spread over the ${daysLeft} day${daysLeft===1?'':'s'} left this month`
+    : `Income minus spending so far, spread over the ${daysLeft} day${daysLeft===1?'':'s'} left this month`;
+  sub.textContent = upcomingBills>0
+    ? `${cur(upcomingBills)} set aside for bills due later this month.${hasBudgets?'':' Set budgets for a more accurate number.'}`
+    : (hasBudgets ? '' : 'Set budgets in the Budgets tab for a more accurate number.');
+}
+// Compact this-month-vs-last-month view for the dashboard. The full category-by-category
+// breakdown still lives under More > Month-over-month; this is just the headline number.
+function renderDashMoM(thisMonthExpense){
+  const amtEl = document.getElementById('dash-mom-amt');
+  const badgeEl = document.getElementById('dash-mom-badge');
+  if(!amtEl || !badgeEl) return;
+  const lastMonthExpense = monthTx('expense',-1).reduce((s,t)=>s+txAmt(t),0);
+  amtEl.textContent = cur(thisMonthExpense);
+  if(lastMonthExpense<=0){
+    badgeEl.textContent = 'No data for last month';
+    badgeEl.style.color = 'var(--ink-mute)'; badgeEl.style.borderColor = 'var(--border)';
+    return;
+  }
+  const pct = Math.round(((thisMonthExpense-lastMonthExpense)/lastMonthExpense)*100);
+  const up = pct>0;
+  badgeEl.textContent = `${up?'▲':pct<0?'▼':'—'} ${Math.abs(pct)}% vs last month (${cur(lastMonthExpense)})`;
+  badgeEl.style.color = up ? 'var(--red)' : (pct<0 ? 'var(--green)' : 'var(--ink-mute)');
+  badgeEl.style.borderColor = up ? 'var(--red)' : (pct<0 ? 'var(--green)' : 'var(--border)');
+}
 
+// Colors the dashboard's total-balance card and shows a message when the balance is negative
+// (red) or under the user's configured low-balance threshold (amber).
+function renderBalanceWarning(totalBalance){
+  const card = document.getElementById('m-balance-card');
+  const ic = document.getElementById('m-balance-ic');
+  const warn = document.getElementById('m-balance-warning');
+  if(!card || !ic || !warn) return;
+  card.classList.remove('accent-teal', 'accent-coral');
+  const threshold = Number(state.lowBalanceThreshold)||0;
+  if(totalBalance<0){
+    card.classList.add('accent-coral');
+    ic.style.background = 'var(--red-bg)'; ic.style.color = 'var(--red)'; ic.textContent = '⚠';
+    warn.textContent = "You're in the red — total balance is negative.";
+    warn.style.color = 'var(--red)';
+    warn.classList.remove('hidden');
+  } else if(threshold>0 && totalBalance<threshold){
+    card.classList.add('accent-coral');
+    ic.style.background = 'var(--amber-bg)'; ic.style.color = 'var(--amber)'; ic.textContent = '⚠';
+    warn.textContent = `Below your ${cur(threshold)} low-balance threshold.`;
+    warn.style.color = 'var(--amber)';
+    warn.classList.remove('hidden');
+  } else {
+    card.classList.add('accent-teal');
+    ic.style.background = 'var(--teal-bg)'; ic.style.color = 'var(--teal)'; ic.textContent = '💰';
+    warn.classList.add('hidden');
+  }
+}
+function setLowBalanceThreshold(val){
+  state.lowBalanceThreshold = Math.max(0, Number(val)||0);
+  save();
+  renderDashboard();
+}
 function txRow(t){
-  const icon = t.type==='income' ? '💵' : ((CATS.find(c=>c.id===t.cat) || {ic:'⋯'}).ic);
+  const icon = t.type==='income' ? '💵' : ((state.categories.find(c=>c.id===t.cat) || {ic:'⋯'}).ic);
   return `<div class="tx-row"><div class="tx-ic">${icon}</div>
     <div class="tx-info"><div class="name">${t.desc}</div><div class="meta">${formatDateTime(t.date)}</div></div>
     <div class="tx-amt ${t.type==='income'?'pos':'neg'}">${t.type==='income'?'+':'-'}${curIn(t.amount, accountCurrency(t.account))}</div>
-    <span class="chip" style="padding:4px 8px; margin-left:8px" title="Edit" onclick="editTx('${t.id}')">✎</span>
-    <span class="chip" style="padding:4px 8px; color:var(--red); border-color:var(--red)" title="Delete" onclick="deleteTx('${t.id}')">🗑</span>
+    <span class="chip icon-chip" role="button" tabindex="0" aria-label="Edit transaction ${t.name||''}" style="margin-left:8px" title="Edit" onclick="editTx('${t.id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();editTx('${t.id}')}">✎</span>
+    <span class="chip icon-chip" role="button" tabindex="0" aria-label="Delete transaction ${t.name||''}" style="color:var(--red); border-color:var(--red)" title="Delete" onclick="deleteTx('${t.id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();deleteTx('${t.id}')}">🗑</span>
   </div>`;
 }
 // Converts an epoch ms timestamp to a value usable by <input type="datetime-local">, in local time.
@@ -1274,7 +1480,7 @@ function renderHistory(){
   const chips = document.getElementById('filter-chips');
   if(!chips.dataset.built){
     chips.innerHTML = "<span class=\"chip active\" onclick=\"setFilter('all',this)\">All</span>" +
-      CATS.map(c=>`<span class="chip" onclick="setFilter('${c.id}',this)">${c.name}</span>`).join('');
+      state.categories.map(c=>`<span class="chip" onclick="setFilter('${c.id}',this)">${c.name}</span>`).join('');
     chips.dataset.built='1';
   }
   const q = (document.getElementById('search-input').value||'').toLowerCase();
@@ -1292,7 +1498,7 @@ function setFilter(cat, el){
 
 function renderBudgets(){
   const el = document.getElementById('budget-list');
-  el.innerHTML = CATS.filter(c=>c.id!=='other').map(c=>{
+  el.innerHTML = state.categories.filter(c=>c.id!=='other').map(c=>{
     const val = state.budgets[c.id]||0;
     return `<div style="margin-bottom:16px">
       <div class="row-between" style="margin-bottom:6px; font-size:13px"><span>${c.ic} ${c.name}</span><span class="num">${cur(val)}</span></div>
@@ -1307,7 +1513,7 @@ function updateBudget(cat, val, el){
   renderDashboard();
 }
 function editEnvelope(cat){
-  const c = CATS.find(c=>c.id===cat);
+  const c = state.categories.find(c=>c.id===cat);
   openFormModal({
     title:`Edit budget — ${c?c.name:cat}`,
     fields:[
@@ -1320,7 +1526,7 @@ function editEnvelope(cat){
   });
 }
 function deleteEnvelope(cat){
-  const c = CATS.find(c=>c.id===cat);
+  const c = state.categories.find(c=>c.id===cat);
   showConfirm(`Delete the ${c?c.name:cat} budget envelope? This only removes the budget limit — past transactions stay untouched.`, ()=>{
     delete state.budgets[cat];
     save(); renderDashboard(); renderBudgets();
@@ -1430,11 +1636,12 @@ function processGoalAutoSaves(){
 function renderAccounts(){
   document.getElementById('account-list').innerHTML = state.accounts.map(a=>{
     const accCur = a.currency || state.currency;
-    const nativeStr = curIn(Number(a.balance)||0, accCur);
+    const bal = Number(a.balance)||0;
+    const nativeStr = curIn(bal, accCur);
     const convNote = accCur!==state.currency
-      ? ` <span style="color:var(--ink-mute)">≈ ${cur(Math.round(convertAmount(Number(a.balance)||0, accCur, state.currency)))}</span>`
+      ? ` <span style="color:var(--ink-mute)">≈ ${cur(Math.round(convertAmount(bal, accCur, state.currency)))}</span>`
       : '';
-    return `<div class="list-item"><div style="display:flex; align-items:center; gap:10px"><div class="acc-ic">${a.type==='bank'?'🏦':a.type==='credit'?'💳':'💵'}</div><div><div style="font-size:13.5px">${a.name}</div><div class="num" style="font-size:12px; color:var(--ink-mute)">${nativeStr}${convNote}</div></div></div>
+    return `<div class="list-item"><div style="display:flex; align-items:center; gap:10px"><div class="acc-ic">${a.type==='bank'?'🏦':a.type==='credit'?'💳':'💵'}</div><div><div style="font-size:13.5px">${a.name}</div><div class="num" style="font-size:12px; color:${bal<0?'var(--red)':'var(--ink-mute)'}">${bal<0?'⚠ ':''}${nativeStr}${convNote}</div></div></div>
     <div style="display:flex; gap:6px">
       <span class="chip" style="padding:5px 9px" title="Edit" onclick="editAccount('${a.id}')">✎</span>
       <span class="chip" style="padding:5px 9px; color:var(--red); border-color:var(--red)" title="Delete" onclick="deleteAccount('${a.id}')">🗑</span>
@@ -1483,9 +1690,92 @@ function deleteAccount(id){
     save(); renderAccounts(); renderTxAccounts(); renderDashboard();
   });
 }
+// ---- Custom categories (add/rename/delete) ----
+function slugifyCatName(name){
+  const base = name.toLowerCase().trim().replace(/[^a-z0-9]+/g,'-').replace(/(^-+|-+$)/g,'') || 'cat';
+  let id = base, i = 2;
+  while(state.categories.some(c=>c.id===id)){ id = base+'-'+i; i++; }
+  return id;
+}
+function renderCategories(){
+  const el = document.getElementById('category-list');
+  if(!el) return;
+  el.innerHTML = state.categories.map(c=>`
+    <div class="list-item" style="padding:9px 0">
+      <span style="font-size:13px; display:flex; align-items:center; gap:9px">
+        <span style="width:24px; height:24px; border-radius:7px; background:${c.color||'#B4B2A9'}22; color:${c.color||'#B4B2A9'}; display:flex; align-items:center; justify-content:center; font-size:13px; flex-shrink:0">${c.ic}</span>
+        ${c.name}
+      </span>
+      <div style="display:flex; align-items:center; gap:6px">
+        <span class="chip" style="padding:5px 9px" title="Edit" onclick="editCategory('${c.id}')">✎</span>
+        <span class="chip" style="padding:5px 9px; color:var(--red); border-color:var(--red)" title="Delete" onclick="deleteCategory('${c.id}')">🗑</span>
+      </div>
+    </div>`).join('') || '<p style="color:var(--ink-mute); font-size:13px">No categories yet.</p>';
+}
+function addCategory(){
+  openFormModal({
+    title:'New category',
+    fields:[
+      {key:'name', label:'Name', placeholder:'e.g. Education', required:true},
+      {key:'ic', label:'Icon (any emoji)', placeholder:'📚', value:'🏷'},
+      {key:'color', label:'Color', type:'color', value:NEW_CAT_COLORS[state.categories.length % NEW_CAT_COLORS.length]}
+    ],
+    onSave(v){
+      const id = slugifyCatName(v.name);
+      state.categories.push({id, name:v.name.trim(), ic:(v.ic||'🏷').trim()||'🏷', color:v.color||'#B4B2A9'});
+      save(); renderCategories(); renderAll();
+    }
+  });
+}
+function editCategory(id){
+  const c = state.categories.find(c=>c.id===id); if(!c) return;
+  openFormModal({
+    title:'Edit category',
+    fields:[
+      {key:'name', label:'Name', value:c.name, required:true},
+      {key:'ic', label:'Icon (any emoji)', value:c.ic},
+      {key:'color', label:'Color', type:'color', value:c.color||'#B4B2A9'}
+    ],
+    onSave(v){
+      c.name = v.name.trim();
+      c.ic = (v.ic||c.ic).trim() || c.ic;
+      c.color = v.color || c.color;
+      save(); renderCategories(); renderAll();
+    }
+  });
+}
+function deleteCategory(id){
+  if(state.categories.length<=1){ showAlert('You need at least one category — add another before deleting this one.'); return; }
+  const c = state.categories.find(c=>c.id===id); if(!c) return;
+  const usedInTx = state.transactions.some(t=>t.cat===id);
+  const usedInBudget = state.budgets[id]!==undefined;
+  if(usedInTx || usedInBudget){
+    const others = state.categories.filter(x=>x.id!==id).map(x=>({value:x.id, label:x.name}));
+    openFormModal({
+      title:`Delete "${c.name}"`,
+      fields:[
+        {key:'replacement', label:'Move its transactions and budget to', type:'select', value:others[0].value, options:others}
+      ],
+      onSave(v){
+        state.transactions.forEach(t=>{ if(t.cat===id) t.cat=v.replacement; });
+        if(usedInBudget){
+          state.budgets[v.replacement] = (Number(state.budgets[v.replacement])||0) + Number(state.budgets[id]);
+          delete state.budgets[id];
+        }
+        state.categories = state.categories.filter(x=>x.id!==id);
+        save(); renderCategories(); renderAll();
+      }
+    });
+  } else {
+    showConfirm(`Delete the "${c.name}" category?`, ()=>{
+      state.categories = state.categories.filter(x=>x.id!==id);
+      save(); renderCategories(); renderAll();
+    });
+  }
+}
 // ---- Transfers between accounts (handles differing account currencies correctly) ----
 function openTransferModal(){
-  if(state.accounts.length<2){ alert('Add at least two accounts to transfer money between them.'); return; }
+  if(state.accounts.length<2){ showAlert('Add at least two accounts to transfer money between them.'); return; }
   const accOpts = state.accounts.map(a=>({value:a.id, label:`${a.name} (${a.currency||state.currency})`}));
   openFormModal({
     title:'Transfer between accounts',
@@ -1496,7 +1786,7 @@ function openTransferModal(){
       {key:'note', label:'Note (optional)', placeholder:'e.g. Moving savings'}
     ],
     onSave(v){
-      if(v.from===v.to){ alert('Pick two different accounts to transfer between.'); return; }
+      if(v.from===v.to){ showAlert('Pick two different accounts to transfer between.'); return; }
       const fromAcc = state.accounts.find(a=>a.id===v.from), toAcc = state.accounts.find(a=>a.id===v.to);
       if(!fromAcc || !toAcc) return;
       const amountFrom = Number(v.amount);
@@ -1587,7 +1877,7 @@ function clearAllNotifs(){
   save(); openNotifPanel();
 }
 function requestNotifPermission(){
-  if(!window.Notification){ alert("This browser doesn't support desktop notifications."); return; }
+  if(!window.Notification){ showAlert("This browser doesn't support desktop notifications."); return; }
   Notification.requestPermission().then(()=>{ openNotifPanel(); });
 }
 // Builds and pushes one digest notification per week (Mondays) and per month (1st) — computed
@@ -1625,7 +1915,7 @@ function buildDigestText(period){
   const byCat = {};
   tx.filter(t=>t.type==='expense').forEach(t=>{ byCat[t.cat]=(byCat[t.cat]||0)+txAmt(t); });
   const top = Object.entries(byCat).sort((a,b)=>b[1]-a[1])[0];
-  const topName = top ? (CATS.find(c=>c.id===top[0])?.name || top[0]) : null;
+  const topName = top ? (state.categories.find(c=>c.id===top[0])?.name || top[0]) : null;
   let text = `${cur(expense)} spent, ${cur(income)} earned`;
   if(topName) text += `, mostly on ${topName.toLowerCase()} (${cur(top[1])})`;
   return text + '.';
@@ -1645,7 +1935,7 @@ function checkBillReminders(){
     const when = d<0 ? `${Math.abs(d)} day(s) overdue` : d===0 ? 'due today' : `due in ${d} day(s)`;
     pushNotification(`${b.name} (${cur(b.amount)}) — ${when}.`, 'bill');
   });
-  alert('Upcoming bills:\n' + lines.join('\n'));
+  showAlert('Upcoming bills:\n' + lines.join('\n'));
 }
 function addBill(){
   openFormModal({
@@ -1695,14 +1985,14 @@ function recurringFormFields(r){
     {key:'name', label:'Name', placeholder:'e.g. Rent', required:true, value:r?r.name:undefined},
     {key:'amount', label:'Amount', type:'number', placeholder:'0', required:true, positive:true, value:r?r.amount:undefined},
     {key:'type', label:'Type', type:'select', value:r?r.type:'expense', options:typeOpts},
-    {key:'cat', label:'Category', type:'select', value:r?r.cat:'other', options:CATS.map(c=>({value:c.id,label:c.name}))},
+    {key:'cat', label:'Category', type:'select', value:r?r.cat:'other', options:state.categories.map(c=>({value:c.id,label:c.name}))},
     {key:'account', label:'Account', type:'select', value:r?r.account:(state.accounts[0]?state.accounts[0].id:''), options:accOpts.length?accOpts:[{value:'',label:'Add an account first'}]},
     {key:'freq', label:'Frequency', type:'select', value:r?r.freq:'Monthly', options:FREQ_OPTIONS},
     {key:'startDate', label:'Next occurrence date', type:'date', value:r? new Date(r.nextRun).toISOString().slice(0,10) : new Date().toISOString().slice(0,10)}
   ];
 }
 function addRecurring(){
-  if(state.accounts.length===0){ alert('Add an account first so we know where to post this recurring transaction.'); goTo('settings'); return; }
+  if(state.accounts.length===0){ showAlert('Add an account first so we know where to post this recurring transaction.'); goTo('settings'); return; }
   openFormModal({
     title:'New recurring transaction',
     fields: recurringFormFields(null),
@@ -1736,18 +2026,22 @@ function advanceRecurringDate(ts, freq){
 // app hasn't been opened in a long time.
 function processRecurringTransactions(){
   let changed = false;
+  let incomeCreated = false;
   const now = Date.now();
   state.recurring.forEach(r=>{
     if(!r.nextRun) return;
     let guard = 0;
     while(r.nextRun<=now && guard<36){
       const t = {id:'t'+Date.now()+Math.random().toString(36).slice(2), desc:r.name, amount:Number(r.amount), type:r.type||'expense', cat:r.cat||'other', account:r.account||(state.accounts[0]&&state.accounts[0].id), date:r.nextRun};
-      if(t.account){ state.transactions.push(t); applyTxToAccount(t,1); changed = true; }
+      if(t.account){ state.transactions.push(t); applyTxToAccount(t,1); changed = true; if(t.type==='income') incomeCreated = true; }
       r.nextRun = advanceRecurringDate(r.nextRun, r.freq);
       guard++;
     }
   });
   if(changed) save();
+  // Recurring income (salary, etc.) should trigger goal auto-save the same way a manually
+  // entered income transaction does — not just when someone happens to type it in by hand.
+  if(incomeCreated) processGoalAutoSaves();
   return changed;
 }
 function deleteRecurring(id){
@@ -1792,9 +2086,25 @@ function toggleDark(){
   document.getElementById('dark-toggle').classList.toggle('on', state.dark);
   const quick = document.getElementById('theme-quick-toggle');
   if(quick) quick.textContent = state.dark ? '☀️' : '🌙';
-  const dashToggle = document.getElementById('dash-theme-toggle');
-  if(dashToggle) dashToggle.textContent = state.dark ? '☀️' : '🌙';
 }
+
+function setTextScale(scale){
+  document.documentElement.style.setProperty('--a11y-zoom', scale);
+  try{ localStorage.setItem('a11y-text-scale', String(scale)); }catch(e){}
+  document.querySelectorAll('#text-scale-group .text-scale-btn').forEach(btn=>{
+    btn.classList.toggle('active', parseFloat(btn.dataset.scale)===scale);
+  });
+}
+(function initTextScale(){
+  let saved = 1;
+  try{ saved = parseFloat(localStorage.getItem('a11y-text-scale')) || 1; }catch(e){}
+  document.documentElement.style.setProperty('--a11y-zoom', saved);
+  document.addEventListener('DOMContentLoaded', ()=>{
+    document.querySelectorAll('#text-scale-group .text-scale-btn').forEach(btn=>{
+      btn.classList.toggle('active', parseFloat(btn.dataset.scale)===saved);
+    });
+  });
+})();
 
 function exportCSV(){
   let csv = 'Date,Description,Category,Type,Amount,Currency,Account\n';
@@ -1845,15 +2155,14 @@ function handleRestoreFileSelected(event){
   reader.onload = e=>{
     let parsed;
     try{ parsed = JSON.parse(e.target.result); }
-    catch(err){ alert('This file isn\'t valid JSON — make sure you picked a Budgeting App backup file.'); event.target.value=''; return; }
+    catch(err){ showAlert('This file isn\'t valid JSON — make sure you picked a Budgeting App backup file.'); event.target.value=''; return; }
     const incoming = parsed && parsed.app==='khaata' && parsed.state ? parsed.state : parsed;
     if(!incoming || typeof incoming!=='object' || !Array.isArray(incoming.transactions)){
-      alert('This doesn\'t look like a Budgeting App backup file.'); event.target.value=''; return;
+      showAlert('This doesn\'t look like a Budgeting App backup file.'); event.target.value=''; return;
     }
     showConfirm('Restoring will replace ALL current data on this device with the backup\'s data. This cannot be undone. Continue?', ()=>{
       localStorage.setItem('khaata_state', JSON.stringify(incoming));
-      alert('Backup restored. The app will now reload.');
-      location.reload();
+      showAlert('Backup restored. The app will now reload.', ()=>location.reload());
     }, 'Restore');
   };
   reader.readAsText(file);
@@ -1907,7 +2216,7 @@ function buildTxFromCSVRow(row, cols, accountId){
   let cat = 'other';
   if(cols.category && row[cols.category]){
     const val = String(row[cols.category]).toLowerCase();
-    const match = CATS.find(c=>c.id===val || c.name.toLowerCase()===val);
+    const match = state.categories.find(c=>c.id===val || c.name.toLowerCase()===val);
     cat = match ? match.id : (type==='expense' ? detectCategoryFromText(desc) : 'other');
   } else if(type==='expense'){
     cat = detectCategoryFromText(desc);
@@ -1916,7 +2225,7 @@ function buildTxFromCSVRow(row, cols, accountId){
 }
 let pendingImportRows = null, pendingImportCols = null;
 function triggerCSVImport(){
-  if(state.accounts.length===0){ alert('Add an account first so imported transactions have somewhere to post.'); goTo('settings'); return; }
+  if(state.accounts.length===0){ showAlert('Add an account first so imported transactions have somewhere to post.'); goTo('settings'); return; }
   document.getElementById('csv-file-input').click();
 }
 function handleCSVFileSelected(evt){
@@ -1927,17 +2236,17 @@ function handleCSVFileSelected(evt){
   reader.onload = () => {
     let parsed;
     try{ parsed = Papa.parse(reader.result, {header:true, skipEmptyLines:true}); }
-    catch(e){ alert('Could not read that CSV file.'); return; }
-    if(!parsed || !parsed.data || !parsed.data.length){ alert('No rows found in that CSV file.'); return; }
+    catch(e){ showAlert('Could not read that CSV file.'); return; }
+    if(!parsed || !parsed.data || !parsed.data.length){ showAlert('No rows found in that CSV file.'); return; }
     const cols = detectCSVColumns(parsed.meta.fields||[]);
     if(!cols.date && !cols.amount && !cols.debit && !cols.credit){
-      alert("Couldn't recognize this CSV's columns. Expected columns like Date, Description, and Amount (or Debit/Credit)."); return;
+      showAlert("Couldn't recognize this CSV's columns. Expected columns like Date, Description, and Amount (or Debit/Credit)."); return;
     }
     pendingImportRows = parsed.data;
     pendingImportCols = cols;
     openImportModal();
   };
-  reader.onerror = () => alert('Could not read that file.');
+  reader.onerror = () => showAlert('Could not read that file.');
   reader.readAsText(file);
 }
 function openImportModal(){
@@ -1969,7 +2278,7 @@ function confirmCSVImport(){
   });
   save(); renderAll();
   closeImportModal();
-  alert(`Imported ${imported} transaction(s).${skipped?` Skipped ${skipped} row(s) that couldn't be parsed.`:''}`);
+  showAlert(`Imported ${imported} transaction(s).${skipped?` Skipped ${skipped} row(s) that couldn't be parsed.`:''}`);
 }
 
 function renderBankList(){
@@ -1985,7 +2294,7 @@ function connectBank(){
   if(!bankName) return;
   const already = state.banks.find(b=>b.name.trim().toLowerCase()===bankName.trim().toLowerCase());
   if(already){
-    alert(`${bankName} is already connected (last synced ${timeAgo(already.synced)}). Skipping duplicate import.`);
+    showAlert(`${bankName} is already connected (last synced ${timeAgo(already.synced)}). Skipping duplicate import.`);
     return;
   }
   btn.textContent = 'Connecting…';
@@ -2007,7 +2316,7 @@ function connectBank(){
     save();
     btn.textContent = 'Connect bank';
     renderAll();
-    alert(bankName+' connected — imported '+sample.length+' sample transactions.');
+    showAlert(bankName+' connected — imported '+sample.length+' sample transactions.');
   }, 900);
 }
 
@@ -2020,16 +2329,16 @@ function renderInsights(){
   const sorted = Object.entries(spend).sort((a,b)=>b[1]-a[1]);
   if(sorted.length){
     const [topCat, topAmt] = sorted[0];
-    const c = CATS.find(c=>c.id===topCat);
+    const c = state.categories.find(c=>c.id===topCat);
     insights.push(`You're spending the most on ${c?c.name.toLowerCase():topCat} this month — ${cur(topAmt)} so far.`);
   }
   Object.entries(state.budgets).forEach(([cat,limit])=>{
     const spent = spend[cat]||0;
     if(spent>limit){
-      const c = CATS.find(c=>c.id===cat);
+      const c = state.categories.find(c=>c.id===cat);
       insights.push(`Heads up — you've gone ${cur(spent-limit)} over your ${c?c.name.toLowerCase():cat} budget.`);
     } else if(spent>limit*0.8){
-      const c = CATS.find(c=>c.id===cat);
+      const c = state.categories.find(c=>c.id===cat);
       insights.push(`You're close to your ${c?c.name.toLowerCase():cat} limit — ${cur(limit-spent)} left this month.`);
     }
   });
@@ -2058,7 +2367,7 @@ function renderMomTable(currentSpend){
   if(!cats.length){ el.innerHTML = '<p style="font-size:12px; color:var(--ink-mute)">Not enough data yet — add transactions across a couple of months to compare.</p>'; return; }
   const rows = cats.map(cat=>{
     const now = currentSpend[cat]||0, prev = lastSpend[cat]||0;
-    const c = CATS.find(c=>c.id===cat);
+    const c = state.categories.find(c=>c.id===cat);
     const name = c?c.name:cat;
     let pctLabel = '—', color = 'var(--ink-mute)';
     if(prev>0){
@@ -2088,7 +2397,7 @@ function monthOverMonthInsights(currentSpend){
   });
   moves.sort((a,b)=>Math.abs(b.pct)-Math.abs(a.pct));
   moves.slice(0,2).forEach(m=>{
-    const c = CATS.find(c=>c.id===m.cat);
+    const c = state.categories.find(c=>c.id===m.cat);
     const name = c?c.name.toLowerCase():m.cat;
     out.push(m.pct>0
       ? `This month you've spent ${m.pct}% more on ${name} than last month (${cur(m.now)} vs ${cur(m.prev)}).`
@@ -2137,7 +2446,7 @@ function inviteMember(){
 function assignToCategory(catId){
   const input = document.getElementById('zb-input-'+catId);
   const amount = Number(input.value);
-  if(!(amount>0)){ alert('Enter an amount greater than zero to assign.'); return; }
+  if(!(amount>0)){ showAlert('Enter an amount greater than zero to assign.'); return; }
   const income = monthTx('income').reduce((s,t)=>s+txAmt(t),0);
   const budgeted = Object.values(state.budgets).reduce((s,v)=>s+Number(v),0);
   const unassigned = income-budgeted;
@@ -2166,7 +2475,7 @@ function renderMore(){
 
   document.getElementById('zb-assign-list').innerHTML =
     `<div style="font-size:12px; color:var(--ink-mute); margin-bottom:10px">Assign your unassigned ${cur(Math.max(0,unassigned))} to a category:</div>` +
-    CATS.filter(c=>c.id!=='other').map(c=>{
+    state.categories.filter(c=>c.id!=='other').map(c=>{
       const assigned = state.budgets[c.id]||0;
       return `<div class="row-between" style="padding:8px 0; border-bottom:1px solid var(--border)">
         <span style="font-size:13px">${c.ic} ${c.name}</span>
@@ -2306,7 +2615,7 @@ function renderDebtPlanner(){
   document.getElementById('debt-total-interest').textContent = plan.stuck ? '—' : cur(Math.round(plan.totalInterest));
 }
 function openScheduleModal(){
-  if(!state.debts.length){ alert('Add a debt first to see its payoff schedule.'); return; }
+  if(!state.debts.length){ showAlert('Add a debt first to see its payoff schedule.'); return; }
   const plan = calculateDebtPayoffPlan(state.debts, state.debtStrategy, state.debtExtra);
   const stratLabel = state.debtStrategy==='snowball' ? 'Snowball — smallest balance first' : 'Avalanche — highest interest first';
   document.getElementById('schedule-modal-sub').textContent = `${stratLabel} · ${cur(state.debtExtra||0)}/mo extra · order: ${plan.order.map(d=>d.name).join(' → ')}`;
@@ -2357,8 +2666,8 @@ function submitGenericModal(){
     if(f.positive && !(v>0)) invalidPositive = f.label;
     values[f.key]=v;
   });
-  if(missing){ alert('Please fill in all required fields.'); return; }
-  if(invalidPositive){ alert(`${invalidPositive} must be greater than zero.`); return; }
+  if(missing){ showAlert('Please fill in all required fields.'); return; }
+  if(invalidPositive){ showAlert(`${invalidPositive} must be greater than zero.`); return; }
   genericModalConfig.onSave(values);
   closeGenericModal();
 }
@@ -2515,7 +2824,7 @@ function renderNetWorthChart(){
 function runReport(){
   const from = document.getElementById('report-from').value;
   const to = document.getElementById('report-to').value;
-  if(!from || !to){ alert('Pick both dates'); return; }
+  if(!from || !to){ showAlert('Pick both dates'); return; }
   const start = new Date(from).getTime(), end = new Date(to).getTime()+86400000;
   const list = state.transactions.filter(t=>t.date>=start && t.date<end);
   const income = list.filter(t=>t.type==='income').reduce((s,t)=>s+txAmt(t),0);
@@ -2523,7 +2832,7 @@ function runReport(){
   const byCat = {};
   list.filter(t=>t.type==='expense').forEach(t=>{ byCat[t.cat]=(byCat[t.cat]||0)+txAmt(t); });
   const rows = Object.entries(byCat).map(([cat,amt])=>{
-    const c = CATS.find(c=>c.id===cat);
+    const c = state.categories.find(c=>c.id===cat);
     return `<div class="list-item" style="padding:6px 0"><span style="font-size:12.5px">${c?c.name:cat}</span><span class="num" style="font-size:12.5px">${cur(amt)}</span></div>`;
   }).join('');
   document.getElementById('report-output').innerHTML = `
@@ -2590,6 +2899,57 @@ function showConfirm(msg, onYes, yesLabel){
   document.getElementById('confirm-modal').classList.add('active');
 }
 function closeConfirmModal(){ document.getElementById('confirm-modal').classList.remove('active'); }
+// Custom alert dialog — window.alert() is silently blocked in the same embedded/webview
+// contexts as window.confirm(), so route every message through this instead.
+let alertOkHandler = null;
+function showAlert(msg, onOk, title){
+  document.getElementById('alert-modal-title').textContent = title || 'Heads up';
+  document.getElementById('alert-modal-msg').textContent = msg;
+  alertOkHandler = onOk || null;
+  document.getElementById('alert-modal').classList.add('active');
+}
+function closeAlertModal(){
+  document.getElementById('alert-modal').classList.remove('active');
+  const fn = alertOkHandler; alertOkHandler = null;
+  if(fn) fn();
+}
+// ---- First-run onboarding tour ----
+// Shown once per device/browser (tracked in localStorage, separate from any profile/account
+// data) so it survives even for local-only users and doesn't reappear after every reload.
+const ONBOARDING_STEPS = [
+  {icon:'👋', title:'Welcome to Budgeting App', body:"A 30-second tour of the three ideas that make this app click — then you're on your own."},
+  {icon:'✉️', title:'Budget envelopes', body:"Set a monthly limit per category — Food, Transport, whatever you like. The bar fills up as you spend, and you'll get a heads up if you go over."},
+  {icon:'🎯', title:'Savings goals', body:"Create a goal — like \"New laptop\" or \"Emergency fund\" — set a target amount, and track contributions toward it, with optional automatic monthly saving."},
+  {icon:'🔁', title:'Rollover', body:"Turn this on in Budgets and any money you don't spend in a category carries into next month's limit, instead of resetting to zero."},
+  {icon:'🚀', title:"You're all set", body:"Explore the tabs below to get started. You can revisit accounts, categories, and other settings any time from Settings."}
+];
+let onboardingStep = 0;
+function maybeShowOnboarding(){
+  if(localStorage.getItem('khaata_onboarding_done')) return;
+  onboardingStep = 0;
+  renderOnboardingStep();
+  document.getElementById('onboarding-modal').classList.add('active');
+}
+function renderOnboardingStep(){
+  const s = ONBOARDING_STEPS[onboardingStep];
+  document.getElementById('onboarding-icon').textContent = s.icon;
+  document.getElementById('onboarding-title').textContent = s.title;
+  document.getElementById('onboarding-body').textContent = s.body;
+  document.getElementById('onboarding-dots').innerHTML = ONBOARDING_STEPS.map((_,i)=>
+    `<span style="width:6px; height:6px; border-radius:50%; background:${i===onboardingStep?'var(--teal)':'var(--border)'}"></span>`
+  ).join('');
+  document.getElementById('onboarding-next-btn').textContent = onboardingStep===ONBOARDING_STEPS.length-1 ? 'Get started' : 'Next';
+}
+function onboardingNext(){
+  if(onboardingStep>=ONBOARDING_STEPS.length-1){ onboardingFinish(); return; }
+  onboardingStep++;
+  renderOnboardingStep();
+}
+function onboardingSkip(){ onboardingFinish(); }
+function onboardingFinish(){
+  localStorage.setItem('khaata_onboarding_done', '1');
+  document.getElementById('onboarding-modal').classList.remove('active');
+}
 function closeTxModal(){ document.getElementById('tx-modal').classList.remove('active'); editingTxId = null; }
 function setTxType(t){
   txType = t;
@@ -2597,7 +2957,7 @@ function setTxType(t){
   document.getElementById('type-income').classList.toggle('active', t==='income');
 }
 function renderTxCats(){
-  document.getElementById('tx-cats').innerHTML = CATS.map(c=>
+  document.getElementById('tx-cats').innerHTML = state.categories.map(c=>
     `<div class="cat-pick ${c.id===txCat?'sel':''}" onclick="pickCat('${c.id}')"><div class="ic">${c.ic}</div><span>${c.name}</span></div>`
   ).join('');
 }
@@ -2615,7 +2975,7 @@ function detectCategoryFromText(text){
 }
 function autoDetectCat(){
   const desc = document.getElementById('tx-desc').value||'';
-  if(!desc.trim()){ alert('Type a description first'); return; }
+  if(!desc.trim()){ showAlert('Type a description first'); return; }
   txCat = detectCategoryFromText(desc); renderTxCats();
 }
 function renderSplitList(){
@@ -2665,20 +3025,43 @@ function renderSplitMembers(){
     `<label style="display:flex; align-items:center; gap:8px; font-size:13px; margin-bottom:8px"><input type="checkbox" class="split-member" value="${m.name}"> ${m.name}</label>`
   ).join('') || '<p style="font-size:12px; color:var(--ink-mute)">Invite family members in Settings first.</p>';
 }
+// Flags a likely accidental double-add: same type/account/description/amount within a
+// few minutes of each other (covers double-tapping the save button, not two separate
+// same-priced coffees bought hours apart).
+function findRecentDuplicateTx(type, account, desc, amount, ts){
+  const dn = (desc||'').trim().toLowerCase();
+  return state.transactions.find(t=>{
+    if(t.type!==type || t.account!==account) return false;
+    if(Number(t.amount)!==Number(amount)) return false;
+    if((t.desc||'').trim().toLowerCase()!==dn) return false;
+    return Math.abs(t.date-ts) < 5*60*1000; // within 5 minutes
+  });
+}
 function saveTx(){
   const amount = Number(document.getElementById('tx-amount').value);
   const desc = document.getElementById('tx-desc').value || (txType==='income'?'Income':'Expense');
   const chosenDate = datetimeLocalToTs(document.getElementById('tx-datetime').value);
-  if(!(amount>0)){ alert('Enter an amount greater than zero.'); return; }
+  const account = document.getElementById('tx-account').value;
+  if(!(amount>0)){ showAlert('Enter an amount greater than zero.'); return; }
+  if(!editingTxId){
+    const dupe = findRecentDuplicateTx(txType, account, desc, amount, chosenDate);
+    if(dupe){
+      showConfirm(`This looks like a duplicate — you already logged ${cur(amount)} for "${desc}" a few minutes ago. Add it anyway?`, ()=>commitTx(amount, desc, chosenDate, account), 'Add anyway');
+      return;
+    }
+  }
+  commitTx(amount, desc, chosenDate, account);
+}
+function commitTx(amount, desc, chosenDate, account){
   if(editingTxId){
     const t = state.transactions.find(t=>t.id===editingTxId);
     if(t){
       applyTxToAccount(t, -1); // reverse old effect on the old account
-      t.desc=desc; t.amount=amount; t.type=txType; t.cat=txCat; t.account=document.getElementById('tx-account').value; t.date=chosenDate;
+      t.desc=desc; t.amount=amount; t.type=txType; t.cat=txCat; t.account=account; t.date=chosenDate;
       applyTxToAccount(t, 1); // apply new effect on the (possibly new) account
     }
   } else {
-    const t = {id:'t'+Date.now(), desc, amount, type:txType, cat:txCat, account:document.getElementById('tx-account').value, date:chosenDate};
+    const t = {id:'t'+Date.now(), desc, amount, type:txType, cat:txCat, account, date:chosenDate};
     state.transactions.push(t);
     applyTxToAccount(t, 1);
     if(document.getElementById('split-toggle').classList.contains('on')){
@@ -2710,9 +3093,9 @@ function renderCharts(){
   const spend = {};
   monthTx('expense').forEach(t=>{ spend[t.cat]=(spend[t.cat]||0)+txAmt(t); });
   renderMomTable(spend);
-  const labels = Object.keys(spend).map(k=>CATS.find(c=>c.id===k)?.name||k);
+  const labels = Object.keys(spend).map(k=>state.categories.find(c=>c.id===k)?.name||k);
   const data = Object.values(spend);
-  const colors = Object.keys(spend).map(k=>CAT_COLORS[k]||'#B4B2A9');
+  const colors = Object.keys(spend).map(k=>(state.categories.find(c=>c.id===k)||{}).color||'#B4B2A9');
   const ctx1 = document.getElementById('pieChart');
   if(pieChart) pieChart.destroy();
   pieChart = new Chart(ctx1, {type:'doughnut', data:{labels, datasets:[{data, backgroundColor:colors, borderWidth:0}]}, options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom', labels:{boxWidth:10, font:{size:11}}}}}});
