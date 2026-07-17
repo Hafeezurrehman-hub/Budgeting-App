@@ -274,7 +274,10 @@ body.force-mobile .fab{ bottom:calc(84px + env(safe-area-inset-bottom, 0px)); ri
     <div class="page active" id="page-dashboard">
       <div class="page-head">
         <div><h2 id="dash-greeting">Dashboard</h2><p id="dash-sub">Here's where your money stands.</p></div>
-        <select class="field" id="dash-profile-select" style="width:auto; min-width:140px; margin-bottom:0; padding:9px 12px; font-size:12.5px; cursor:pointer" onchange="switchProfile(this.value)"></select>
+        <div style="display:flex; align-items:center; gap:8px">
+          <select class="field" id="dash-profile-select" style="width:auto; min-width:140px; margin-bottom:0; padding:9px 12px; font-size:12.5px; cursor:pointer" onchange="switchProfile(this.value)"></select>
+          <div id="dash-theme-toggle" onclick="toggleDark()" title="Toggle light/dark theme" style="cursor:pointer; width:38px; height:38px; min-width:38px; border-radius:9px; background:var(--surface-2); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:16px">🌙</div>
+        </div>
       </div>
       <div class="grid-3">
         <div class="card metric-card accent-teal">
@@ -865,6 +868,8 @@ function enterApp(){
   document.getElementById('alert-toggle').classList.toggle('on', state.alertEnabled !== false);
   const quickTheme = document.getElementById('theme-quick-toggle');
   if(quickTheme) quickTheme.textContent = state.dark ? '☀️' : '🌙';
+  const dashTheme = document.getElementById('dash-theme-toggle');
+  if(dashTheme) dashTheme.textContent = state.dark ? '☀️' : '🌙';
   const emailEl = document.getElementById('account-email');
   if(emailEl) emailEl.textContent = currentUser ? (currentUser.email || currentUser.displayName || 'Signed in') : 'Local only (no account)';
   const created = processRecurringTransactions();
@@ -1787,6 +1792,8 @@ function toggleDark(){
   document.getElementById('dark-toggle').classList.toggle('on', state.dark);
   const quick = document.getElementById('theme-quick-toggle');
   if(quick) quick.textContent = state.dark ? '☀️' : '🌙';
+  const dashToggle = document.getElementById('dash-theme-toggle');
+  if(dashToggle) dashToggle.textContent = state.dark ? '☀️' : '🌙';
 }
 
 function exportCSV(){
