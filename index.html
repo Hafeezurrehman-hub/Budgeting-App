@@ -274,6 +274,7 @@ body.force-mobile .fab{ bottom:calc(84px + env(safe-area-inset-bottom, 0px)); ri
     <div class="page active" id="page-dashboard">
       <div class="page-head">
         <div><h2 id="dash-greeting">Dashboard</h2><p id="dash-sub">Here's where your money stands.</p></div>
+        <select class="field" id="dash-profile-select" style="width:auto; min-width:140px; margin-bottom:0; padding:9px 12px; font-size:12.5px; cursor:pointer" onchange="switchProfile(this.value)"></select>
       </div>
       <div class="grid-3">
         <div class="card metric-card accent-teal">
@@ -687,12 +688,18 @@ const firebaseConfig = {
   appId: "1:246861573657:web:597f1e5eadcceda9cc0488"
 };
 let fbApp, fbAuth, fbDb, currentUser = null, cloudSaveTimer = null;
+let profileNameOverride = ''; // fallback display name from Firestore `profile` field, used if auth displayName isn't set
 let profiles = {}, activeProfileId = null;
 const firebaseReady = firebaseConfig.apiKey !== "YOUR_API_KEY";
 if(firebaseReady){
   fbApp = firebase.initializeApp(firebaseConfig);
   fbAuth = firebase.auth();
   fbDb = firebase.firestore();
+  // Lets Firestore reads/writes work offline (served from a local cache) and auto-sync once
+  // the connection comes back — this is what makes cloud-mode accounts usable with no internet.
+  fbDb.enablePersistence({ synchronizeTabs:true }).catch(err=>{
+    console.log('Firestore offline persistence unavailable:', err.code); // e.g. multiple tabs open, or unsupported browser — app still works, just without offline cloud cache
+  });
   // Catches the user coming back from the signInWithRedirect fallback (used when the popup
   // flow is blocked/unsupported, e.g. inside embedded or sandboxed browsers).
   fbAuth.getRedirectResult().catch(err=>showAuthError(friendlyAuthError(err)));
@@ -759,6 +766,10 @@ function activateProfiles(raw){
   state = applyMigrations(profiles[activeProfileId].data || defaultState());
 }
 function renderProfileSwitcher(){
+  const sel = document.getElementById('dash-profile-select');
+  if(sel){
+    sel.innerHTML = Object.entries(profiles).map(([id,p])=>`<option value="${id}" ${id===activeProfileId?'selected':''}>${p.name}</option>`).join('');
+  }
   const el = document.getElementById('profile-list');
   if(!el) return;
   el.innerHTML = Object.entries(profiles).map(([id,p])=>`
@@ -949,6 +960,10 @@ function handleEmailAuth(){
   const action = isSignup
     ? fbAuth.createUserWithEmailAndPassword(email, password).then(cred=>{
         return cred.user.updateProfile({ displayName: `${profile.firstName} ${profile.lastName}` }).then(()=>{
+          // createUserWithEmailAndPassword fires onAuthStateChanged (and the first render)
+          // before this displayName update finishes, so refresh currentUser + re-render now.
+          currentUser = fbAuth.currentUser;
+          if(document.getElementById('app').classList.contains('active')) renderDashboard();
           return fbDb.collection('users').doc(cred.user.uid).set({
             profile: { firstName: profile.firstName, lastName: profile.lastName, phone: profile.phone, email }
           }, { merge:true });
@@ -1031,6 +1046,10 @@ function initForUser(user){
   fbDb.collection('users').doc(user.uid).get().then(doc=>{
     if(doc.exists){
       activateProfiles(doc.data());
+      // Fallback for accounts where the auth displayName never got set/refreshed —
+      // use the name saved in Firestore's `profile` field instead so it still shows.
+      const p = doc.data().profile;
+      if(!currentUser.displayName && p && p.firstName){ profileNameOverride = `${p.firstName} ${p.lastName||''}`.trim(); }
     } else if(!cached){
       activateProfiles(null);
       fbDb.collection('users').doc(user.uid).set({ profiles, activeProfileId }, { merge:true });
@@ -1166,7 +1185,7 @@ function cumulativeCarry(cat, baseLimit){
 function renderDashboard(){
   const hour = new Date().getHours();
   const greeting = hour<12 ? 'Good morning' : hour<17 ? 'Good afternoon' : 'Good evening';
-  const nameSource = currentUser ? (currentUser.displayName || currentUser.email || '') : '';
+  const nameSource = currentUser ? (currentUser.displayName || profileNameOverride || currentUser.email || '') : '';
   const firstName = nameSource.includes('@') ? '' : (nameSource.split(' ')[0] || '');
   const fullName = nameSource.includes('@') ? '' : nameSource;
   const greetEl = document.getElementById('dash-greeting');
