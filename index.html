@@ -196,7 +196,9 @@ label.small{font-size:12px; color:var(--ink-soft); display:block; margin-bottom:
 
 @media(max-width:760px){
   .sidebar{display:none;}
-  main{padding:64px 16px 90px;}
+  main{padding:48px 16px 90px;}
+  #dash-greeting{font-size:29px;}
+  #dash-sub{font-size:13.5px;}
   .grid-3{grid-template-columns:1fr 1fr;}
   .grid-3 > *:nth-child(3):last-child{grid-column:1 / -1; text-align:center;}
   .metric-value{font-size:21px;}
@@ -226,7 +228,9 @@ body.force-mobile #theme-quick-toggle-mobile{display:flex !important;}
 /* Fallback: force mobile layout via JS when the media query doesn't fire
    (e.g. inside webviews/iframes that don't report the real viewport width) */
 body.force-mobile .sidebar{display:none !important;}
-body.force-mobile main{padding:64px 16px 90px !important;}
+body.force-mobile main{padding:48px 16px 90px !important;}
+body.force-mobile #dash-greeting{font-size:29px !important;}
+body.force-mobile #dash-sub{font-size:13.5px !important;}
 body.force-mobile .grid-3{grid-template-columns:1fr 1fr !important;}
 body.force-mobile .grid-3 > *:nth-child(3):last-child{grid-column:1 / -1 !important; text-align:center !important;}
 body.force-mobile .grid-2{grid-template-columns:1fr !important;}
