@@ -3182,12 +3182,9 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-// Double-back-press-to-exit (mobile only): first back press shows a toast instead of leaving
-// the app; a second back press within 2 seconds lets the browser/device actually exit.
+// Double-back-press-to-exit (mobile AND desktop): first back press shows a toast instead of
+// leaving the app; a second back press within 1.5 seconds lets the browser/device actually exit.
 (function(){
-  var isMobile = window.matchMedia('(max-width:760px)').matches || ('ontouchstart' in window);
-  if(!isMobile) return;
-
   var awaitingConfirm = false;
   var confirmTimer = null;
 
