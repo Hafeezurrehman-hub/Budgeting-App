@@ -194,6 +194,77 @@ label.small{font-size:12px; color:var(--ink-soft); display:block; margin-bottom:
 .goal-top .title{font-weight:500; font-size:14px;}
 .goal-top .deadline{font-size:11px; color:var(--ink-mute);}
 
+/* DAILY EXPENSE — quick widget on dashboard + full Daily page */
+.daily-widget{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:18px 20px 16px; box-shadow:var(--shadow-card); margin-bottom:14px; position:relative; overflow:hidden;}
+.daily-widget::before{content:''; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg, var(--gold), var(--gold-soft));}
+.daily-head{display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:12px;}
+.daily-head .daily-title{font-family:var(--font-display); font-size:15.5px; font-weight:500; letter-spacing:-.005em;}
+.daily-head .daily-sub{font-size:11.5px; color:var(--ink-mute); margin-top:1px;}
+.daily-head .daily-total{font-family:var(--font-mono); font-size:24px; font-weight:500; color:var(--coral); letter-spacing:-.01em; white-space:nowrap;}
+.daily-head .daily-count{font-size:11px; color:var(--ink-mute); margin-top:2px; text-align:right;}
+.daily-quickadd{display:grid; grid-template-columns: 130px 1fr 140px 90px; gap:8px; align-items:end; margin-bottom:14px;}
+.daily-quickadd .field{margin-bottom:0; padding:10px 12px; font-size:13px;}
+.daily-quickadd .btn{margin:0; padding:11px 12px; font-size:13px; font-weight:600;}
+.daily-cat-row{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px;}
+.daily-cat-pick{display:flex; align-items:center; gap:5px; padding:5px 10px; border:1px solid var(--border); border-radius:18px; font-size:11.5px; color:var(--ink-soft); cursor:pointer; background:var(--surface); transition:all .12s ease;}
+.daily-cat-pick:hover{border-color:var(--gold);}
+.daily-cat-pick.sel{background:var(--navy); color:var(--gold-soft); border-color:var(--navy);}
+.daily-mini-list{display:flex; flex-direction:column; gap:1px; max-height:220px; overflow-y:auto;}
+.daily-mini-list .tx-row{padding:8px 0; border-bottom:1px solid var(--border);}
+.daily-mini-list .tx-row:last-child{border-bottom:none;}
+.daily-mini-list .tx-ic{width:30px; height:30px; font-size:13px; border-radius:8px;}
+.daily-mini-list .tx-info .name{font-size:13px;}
+.daily-mini-list .tx-info .meta{font-size:10.5px;}
+.daily-mini-list .tx-amt{font-size:13px;}
+.daily-empty{font-size:12.5px; color:var(--ink-mute); padding:8px 0; text-align:center;}
+
+/* DAILY PAGE — full layout */
+.daily-hero{display:grid; grid-template-columns: 1.4fr 1fr; gap:14px; margin-bottom:22px;}
+.daily-hero-card{background:var(--navy); color:#F3EEE1; border-radius:var(--radius-lg); padding:22px 24px; position:relative; overflow:hidden; box-shadow:var(--shadow-card);}
+.daily-hero-card::after{content:''; position:absolute; right:-40px; top:-40px; width:200px; height:200px; background:radial-gradient(circle, var(--gold-line), transparent 70%); pointer-events:none;}
+.daily-hero-card .h-label{font-size:11px; color:var(--gold-soft); text-transform:uppercase; letter-spacing:.06em; margin-bottom:6px; opacity:.9;}
+.daily-hero-card .h-value{font-family:var(--font-mono); font-size:34px; font-weight:500; letter-spacing:-.01em; color:#F3EEE1;}
+.daily-hero-card .h-sub{font-size:12px; color:#A9A79C; margin-top:6px;}
+.daily-hero-side{display:flex; flex-direction:column; gap:14px;}
+.daily-stat{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:14px 18px; box-shadow:var(--shadow-card); display:flex; justify-content:space-between; align-items:center;}
+.daily-stat .s-label{font-size:11.5px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.05em;}
+.daily-stat .s-value{font-family:var(--font-mono); font-size:18px; font-weight:500;}
+.daily-stat .s-meta{font-size:11px; color:var(--ink-mute); margin-top:2px;}
+.daily-stat .s-icon{width:32px; height:32px; border-radius:9px; background:var(--surface-2); display:flex; align-items:center; justify-content:center; font-size:15px;}
+
+.daily-day-block{margin-bottom:20px;}
+.daily-day-head{display:flex; justify-content:space-between; align-items:baseline; padding:0 4px 8px; border-bottom:1px solid var(--border);}
+.daily-day-head .day-title{font-family:var(--font-display); font-size:15.5px; font-weight:500; letter-spacing:-.005em;}
+.daily-day-head .day-title .pill{font-family:var(--font-body); font-size:10.5px; color:var(--ink-mute); margin-left:8px; font-weight:400; letter-spacing:0;}
+.daily-day-head .day-total{font-family:var(--font-mono); font-size:15px; font-weight:500; color:var(--coral);}
+.daily-day-body{background:var(--surface); border:1px solid var(--border); border-radius:0 0 var(--radius-lg) var(--radius-lg); padding:4px 18px 8px; box-shadow:var(--shadow-card); border-top:none;}
+
+.daily-cat-breakdown{display:flex; flex-direction:column; gap:9px; margin-top:6px;}
+.daily-cat-row-bar{display:grid; grid-template-columns: 110px 1fr 90px; align-items:center; gap:10px; font-size:12.5px;}
+.daily-cat-row-bar .cat-name{display:flex; align-items:center; gap:7px; color:var(--ink); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.daily-cat-row-bar .cat-name .ic{font-size:14px;}
+.daily-cat-row-bar .bar-track2{height:6px; background:var(--surface-2); border-radius:3px; overflow:hidden;}
+.daily-cat-row-bar .bar-fill2{height:100%; background:linear-gradient(90deg, var(--gold), var(--gold-soft)); border-radius:3px;}
+.daily-cat-row-bar .cat-amt{font-family:var(--font-mono); font-size:12.5px; text-align:right; color:var(--ink-soft);}
+
+.daily-week-grid{display:grid; grid-template-columns:repeat(7, 1fr); gap:6px; margin-top:4px;}
+.daily-week-day{text-align:center; padding:10px 4px; background:var(--surface-2); border-radius:8px; border:1px solid transparent; transition:border-color .12s ease;}
+.daily-week-day.today{border-color:var(--gold); background:var(--teal-bg);}
+.daily-week-day .wd-name{font-size:10.5px; color:var(--ink-mute); text-transform:uppercase; letter-spacing:.04em;}
+.daily-week-day .wd-amt{font-family:var(--font-mono); font-size:12.5px; font-weight:500; margin-top:3px;}
+.daily-week-day .wd-bar{height:3px; background:var(--border); border-radius:2px; margin-top:5px; overflow:hidden;}
+.daily-week-day .wd-bar > div{height:100%; background:var(--gold);}
+
+@media(max-width:760px){
+  .daily-quickadd{grid-template-columns: 1fr 1fr;}
+  .daily-quickadd .field:first-child{grid-column:1 / -1;}
+  .daily-quickadd .btn{grid-column:1 / -1;}
+  .daily-hero{grid-template-columns:1fr;}
+  .daily-week-grid{grid-template-columns:repeat(7, 1fr); font-size:9px;}
+  .daily-week-day .wd-amt{font-size:11px;}
+  .daily-cat-row-bar{grid-template-columns: 90px 1fr 80px;}
+}
+
 @media(max-width:760px){
   .sidebar{display:none;}
   main{padding:48px 16px 90px;}
@@ -282,6 +353,7 @@ body.force-mobile .fab{ bottom:calc(84px + env(safe-area-inset-bottom, 0px)); ri
       </div>
     </div>
     <div class="nav-item active" data-page="dashboard" onclick="goTo('dashboard')"><span class="ic">⌂</span>Dashboard</div>
+    <div class="nav-item" data-page="daily" onclick="goTo('daily')"><span class="ic">◷</span>Daily</div>
     <div class="nav-item" data-page="history" onclick="goTo('history')"><span class="ic">≡</span>History</div>
     <div class="nav-item" data-page="reports" onclick="goTo('reports')"><span class="ic">◔</span>Reports</div>
     <div class="nav-item" data-page="budgets" onclick="goTo('budgets')"><span class="ic">▤</span>Budgets</div>
@@ -328,6 +400,42 @@ body.force-mobile .fab{ bottom:calc(84px + env(safe-area-inset-bottom, 0px)); ri
         </div>
         <div style="font-size:11px; color:var(--ink-mute); margin-top:8px" id="safe-to-spend-sub"></div>
       </div>
+
+      <!-- DAILY EXPENSE WIDGET — quick add + today's running total, in front for fast entry -->
+      <div class="section-title-row">
+        <div class="section-title">📅 Today's spending</div>
+        <a onclick="goTo('daily')">Open daily log →</a>
+      </div>
+      <div class="daily-widget">
+        <div class="daily-head">
+          <div>
+            <div class="daily-title" id="daily-widget-date">Today</div>
+            <div class="daily-sub" id="daily-widget-sub">Tap a category, type an amount, hit Add.</div>
+          </div>
+          <div>
+            <div class="daily-total" id="daily-widget-total">0</div>
+            <div class="daily-count" id="daily-widget-count">0 items</div>
+          </div>
+        </div>
+        <div class="daily-cat-row" id="daily-widget-cats"></div>
+        <div class="daily-quickadd">
+          <div>
+            <label class="small" style="margin-bottom:4px">Amount</label>
+            <input class="field" type="text" inputmode="decimal" id="daily-qa-amount" placeholder="0" oninput="formatAmountInput(this)" onkeydown="if(event.key==='Enter'){event.preventDefault();addQuickDaily()}">
+          </div>
+          <div>
+            <label class="small" style="margin-bottom:4px">What for?</label>
+            <input class="field" id="daily-qa-desc" placeholder="e.g. Chai, Rickshaw, Lunch…" onkeydown="if(event.key==='Enter'){event.preventDefault();addQuickDaily()}">
+          </div>
+          <div>
+            <label class="small" style="margin-bottom:4px">Account</label>
+            <select class="field" id="daily-qa-account"></select>
+          </div>
+          <div class="btn btn-primary" onclick="addQuickDaily()">+ Add</div>
+        </div>
+        <div class="daily-mini-list" id="daily-widget-list"></div>
+      </div>
+
       <div class="section-title">This month vs last month</div>
       <div class="card row-between" style="margin-bottom:14px">
         <div><div class="metric-label">Spending so far</div><div class="metric-value num" id="dash-mom-amt" style="font-size:18px">0</div></div>
@@ -341,6 +449,94 @@ body.force-mobile .fab{ bottom:calc(84px + env(safe-area-inset-bottom, 0px)); ri
         <a onclick="goTo('history')">View all</a>
       </div>
       <div class="card" id="recent-tx"></div>
+    </div>
+
+    <!-- DAILY EXPENSES — fast daily log + breakdown by day/category -->
+    <div class="page" id="page-daily">
+      <div class="page-head"><div><h2>Daily expenses</h2><p>What you spent today, this week, and the running log by day.</p></div></div>
+
+      <!-- Quick add at the top so it's always one tap away -->
+      <div class="daily-widget" style="margin-bottom:20px">
+        <div class="daily-head">
+          <div>
+            <div class="daily-title">Quick add</div>
+            <div class="daily-sub">Logs instantly as an expense on <span id="daily-page-now"></span>.</div>
+          </div>
+        </div>
+        <div class="daily-cat-row" id="daily-page-cats"></div>
+        <div class="daily-quickadd">
+          <div>
+            <label class="small" style="margin-bottom:4px">Amount</label>
+            <input class="field" type="text" inputmode="decimal" id="daily-page-amount" placeholder="0" oninput="formatAmountInput(this)" onkeydown="if(event.key==='Enter'){event.preventDefault();addQuickDailyFromPage()}">
+          </div>
+          <div>
+            <label class="small" style="margin-bottom:4px">Description</label>
+            <input class="field" id="daily-page-desc" placeholder="What did you spend on?" onkeydown="if(event.key==='Enter'){event.preventDefault();addQuickDailyFromPage()}">
+          </div>
+          <div>
+            <label class="small" style="margin-bottom:4px">Account</label>
+            <select class="field" id="daily-page-account"></select>
+          </div>
+          <div class="btn btn-primary" onclick="addQuickDailyFromPage()">+ Add</div>
+        </div>
+      </div>
+
+      <!-- Hero summary card + side stats -->
+      <div class="daily-hero">
+        <div class="daily-hero-card">
+          <div class="h-label">Spent today</div>
+          <div class="h-value" id="daily-hero-today">0</div>
+          <div class="h-sub" id="daily-hero-today-sub">Across <span id="daily-hero-today-count">0</span> entries · avg <span id="daily-hero-today-avg">0</span>/item</div>
+        </div>
+        <div class="daily-hero-side">
+          <div class="daily-stat">
+            <div>
+              <div class="s-label">This week</div>
+              <div class="s-value" id="daily-stat-week">0</div>
+              <div class="s-meta" id="daily-stat-week-sub">— vs last week</div>
+            </div>
+            <div class="s-icon" style="background:var(--teal-bg); color:var(--teal)">📆</div>
+          </div>
+          <div class="daily-stat">
+            <div>
+              <div class="s-label">Daily average · 7d</div>
+              <div class="s-value" id="daily-stat-avg">0</div>
+              <div class="s-meta">7-day rolling mean</div>
+            </div>
+            <div class="s-icon" style="background:var(--amber-bg); color:var(--amber)">≈</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- This week strip -->
+      <div class="section-title-row">
+        <div class="section-title">This week</div>
+        <span class="chip" id="daily-week-range" style="pointer-events:none">—</span>
+      </div>
+      <div class="daily-week-grid" id="daily-week-grid"></div>
+
+      <!-- Today block (full detail, no truncation) -->
+      <div class="section-title-row" style="margin-top:28px">
+        <div class="section-title">Today</div>
+        <span class="chip" id="daily-today-pill" style="pointer-events:none">0 items</span>
+      </div>
+      <div class="daily-day-block" id="daily-today-block"></div>
+
+      <!-- Last 7 days, grouped per day -->
+      <div class="section-title-row" style="margin-top:28px">
+        <div class="section-title">Recent days</div>
+        <span class="chip" id="daily-recent-pill" style="pointer-events:none">—</span>
+      </div>
+      <div id="daily-recent-blocks"></div>
+
+      <!-- Category breakdown for today -->
+      <div class="section-title-row" style="margin-top:28px">
+        <div class="section-title">Where today's money went</div>
+        <span class="chip" id="daily-cat-pill" style="pointer-events:none">—</span>
+      </div>
+      <div class="card">
+        <div class="daily-cat-breakdown" id="daily-cat-breakdown"></div>
+      </div>
     </div>
 
     <!-- HISTORY -->
@@ -601,6 +797,7 @@ body.force-mobile .fab{ bottom:calc(84px + env(safe-area-inset-bottom, 0px)); ri
 
   <div id="bottom-nav">
     <div class="nav-item active" data-page="dashboard" onclick="goTo('dashboard')"><span class="ic">⌂</span>Home</div>
+    <div class="nav-item" data-page="daily" onclick="goTo('daily')"><span class="ic">◷</span>Daily</div>
     <div class="nav-item" data-page="history" onclick="goTo('history')"><span class="ic">≡</span>History</div>
     <div class="nav-item" data-page="reports" onclick="goTo('reports')"><span class="ic">◔</span>Reports</div>
     <div class="nav-item" data-page="goals" onclick="goTo('goals')"><span class="ic">◎</span>Goals</div>
@@ -795,6 +992,10 @@ if(firebaseReady){
 }
 
 let state = null;
+// Currently-selected category in the daily-expense quick-add chip rows.
+// Hoisted to the top of the script so the first `renderAll()` (called from
+// the init flow above) doesn't trip a TDZ error on `dailyQuickCat`.
+let dailyQuickCat = 'food';
 // The shape a brand-new user (or offline/no-Firebase-config fallback) starts with.
 function defaultState(){
   return {
@@ -1263,6 +1464,7 @@ function goTo(page){
     requestAnimationFrame(()=>{ if(pieChart) pieChart.resize(); if(barChart) barChart.resize(); });
   }
   if(page==='more') renderMore();
+  if(page==='daily') renderDailyPage();
 }
 
 function fmt(n){ return Number(n).toLocaleString('en-US'); }
@@ -1308,6 +1510,7 @@ function renderAll(){
   renderAccounts(); renderBills(); renderRecurring(); renderTxCats(); renderTxAccounts();
   renderBankList(); renderFamily(); renderInsights(); renderBackupInfo(); renderCategories();
   renderProfileSwitcher();
+  renderDailyPage();
   document.getElementById('currency-select').value = state.currency==='Rs'?'Rs':state.currency;
   const lowBalEl = document.getElementById('low-balance-input');
   if(lowBalEl) lowBalEl.value = state.lowBalanceThreshold||0;
@@ -1391,6 +1594,290 @@ function renderDashboard(){
   if(Object.keys(state.budgets).length===0){
     env.innerHTML = '<p style="color:var(--ink-mute); font-size:13px">No budgets set yet — head to the Budgets tab to set your own.</p>';
   }
+  // Daily expense widget (in front, on the dashboard for fast entry)
+  renderTodayWidget();
+}
+
+// =====================================================================
+// DAILY EXPENSES — quick add on dashboard + full Daily page
+// =====================================================================
+// Track which category the user picked in the quick-add chip rows. One
+// shared default is fine for both surfaces; persisting per-field would be
+// more code than it's worth.
+function _dayKey(ts){
+  const d = new Date(ts);
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function _todayKey(){ return _dayKey(Date.now()); }
+// "Today's expenses" = expenses logged on today's local calendar day.
+function _todayExpenses(){
+  const k = _todayKey();
+  return state.transactions.filter(t=>t.type==='expense' && _dayKey(t.date)===k);
+}
+// Pretty "Today" / "Yesterday" / weekday label for the daily surface.
+function _humanDayLabel(key, opts){
+  opts = opts || {};
+  const [y,m,d] = key.split('-').map(Number);
+  const date = new Date(y, m-1, d);
+  const todayK = _todayKey();
+  const yK = (()=>{ const t=new Date(); t.setDate(t.getDate()-1); return _dayKey(t.getTime()); })();
+  if(key===todayK) return 'Today';
+  if(key===yK) return 'Yesterday';
+  if(opts.short) return date.toLocaleDateString('en-GB',{day:'numeric', month:'short'});
+  return date.toLocaleDateString('en-GB',{weekday:'long', day:'numeric', month:'short'});
+}
+// Populate the chip-row of category pickers (used in both surfaces).
+function _renderDailyCatChips(containerId, selectedCat, onPick){
+  const el = document.getElementById(containerId);
+  if(!el) return;
+  el.innerHTML = state.categories.map(c =>
+    `<div class="daily-cat-pick ${c.id===selectedCat?'sel':''}" data-cat="${c.id}" role="button" tabindex="0" onclick="window._dailyPickCat('${containerId}','${c.id}','${onPick}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window._dailyPickCat('${containerId}','${c.id}','${onPick}')}"><span>${c.ic}</span><span>${c.name}</span></div>`
+  ).join('');
+}
+window._dailyPickCat = function(containerId, catId, onPick){
+  dailyQuickCat = catId;
+  // Update chip visuals
+  const el = document.getElementById(containerId);
+  if(el) el.querySelectorAll('.daily-cat-pick').forEach(p=>p.classList.toggle('sel', p.dataset.cat===catId));
+  // Call back into the surface-specific function (e.g. also re-pick on txCat)
+  if(typeof window[onPick] === 'function') window[onPick](catId);
+};
+// Populate the account <select> for the quick-add rows.
+function _renderDailyAccounts(selectId){
+  const el = document.getElementById(selectId);
+  if(!el) return;
+  if(state.accounts.length===0){
+    el.innerHTML = '<option value="">— add an account in Settings —</option>';
+    return;
+  }
+  el.innerHTML = state.accounts.map(a=>`<option value="${a.id}">${a.name}</option>`).join('');
+  // Prefer the first non-empty account; fall back to the first one.
+  const firstWithBalance = state.accounts.find(a=>Number(a.balance)>0);
+  el.value = firstWithBalance ? firstWithBalance.id : state.accounts[0].id;
+}
+// Today's-spending widget on the dashboard. In front, always visible.
+function renderTodayWidget(){
+  // Date label
+  const dateEl = document.getElementById('daily-widget-date');
+  const subEl = document.getElementById('daily-widget-sub');
+  if(dateEl) dateEl.textContent = new Date().toLocaleDateString('en-GB',{weekday:'long', day:'numeric', month:'short'});
+  if(subEl) subEl.textContent = 'Tap a category, type an amount, hit Add.';
+  // Categories
+  _renderDailyCatChips('daily-widget-cats', dailyQuickCat, '_onDailyWidgetCatPick');
+  _renderDailyAccounts('daily-qa-account');
+  // Today's totals + list
+  const txs = _todayExpenses().sort((a,b)=>b.date-a.date);
+  const total = txs.reduce((s,t)=>s+Number(t.amount||0), 0);
+  document.getElementById('daily-widget-total').textContent = cur(total);
+  document.getElementById('daily-widget-count').textContent = `${txs.length} item${txs.length===1?'':'s'}`;
+  const listEl = document.getElementById('daily-widget-list');
+  if(!listEl) return;
+  if(txs.length===0){
+    listEl.innerHTML = '<div class="daily-empty">Nothing logged today yet — add your first expense above ☝️</div>';
+  } else {
+    listEl.innerHTML = txs.map(txRow).join('');
+  }
+}
+window._onDailyWidgetCatPick = function(catId){
+  // Keep the tx-modal's category in sync too, so the next "+" FAB starts from
+  // the same category the user just picked in the quick-add.
+  txCat = catId;
+  if(typeof renderTxCats === 'function') renderTxCats();
+};
+// Hook for Enter key in the dashboard quick-add
+function addQuickDaily(){
+  _addDailyExpense({
+    amountId: 'daily-qa-amount',
+    descId: 'daily-qa-desc',
+    accountId: 'daily-qa-account',
+    afterRender: renderTodayWidget,
+    focusBackId: 'daily-qa-amount'
+  });
+}
+function addQuickDailyFromPage(){
+  _addDailyExpense({
+    amountId: 'daily-page-amount',
+    descId: 'daily-page-desc',
+    accountId: 'daily-page-account',
+    afterRender: ()=>{ renderTodayWidget(); renderDailyPage(); },
+    focusBackId: 'daily-page-amount'
+  });
+}
+function _addDailyExpense({amountId, descId, accountId, afterRender, focusBackId}){
+  if(state.accounts.length===0){
+    showAlert('Add an account in Settings first so the expense can be logged.');
+    return;
+  }
+  const amount = parseAmountInput(document.getElementById(amountId).value);
+  const desc = (document.getElementById(descId).value || '').trim();
+  const account = document.getElementById(accountId).value;
+  if(!(amount>0)){ showAlert('Enter an amount greater than zero.'); return; }
+  if(!account){ showAlert('Pick an account.'); return; }
+  const t = {
+    id: 't'+Date.now()+Math.floor(Math.random()*1000),
+    desc: desc || (state.categories.find(c=>c.id===dailyQuickCat)||{}).name || 'Expense',
+    amount, type: 'expense',
+    cat: dailyQuickCat, account,
+    date: Date.now()
+  };
+  state.transactions.push(t);
+  applyTxToAccount(t, 1);
+  save();
+  // Reset just the inputs — keep the chosen category, so a streak of similar
+  // buys (e.g. several chai stops) is one tap + one number.
+  document.getElementById(amountId).value = '';
+  document.getElementById(descId).value = '';
+  document.getElementById(focusBackId).focus();
+  checkBudgetAlert(dailyQuickCat);
+  if(typeof renderAll === 'function') renderAll();
+  if(afterRender) afterRender();
+  // Tiny confirmation pulse on the total — gives the user feedback even when
+  // the keyboard's still up on mobile.
+  const totalEl = document.getElementById('daily-widget-total');
+  if(totalEl){
+    totalEl.style.transition = 'transform .15s ease, color .15s ease';
+    totalEl.style.transform = 'scale(1.08)';
+    totalEl.style.color = 'var(--green)';
+    setTimeout(()=>{ totalEl.style.transform='scale(1)'; totalEl.style.color='var(--coral)'; }, 220);
+  }
+}
+
+// Full Daily page renderer
+function renderDailyPage(){
+  if(!document.getElementById('page-daily').classList.contains('active')) return;
+  // Quick-add at the top
+  _renderDailyCatChips('daily-page-cats', dailyQuickCat, '_onDailyWidgetCatPick');
+  _renderDailyAccounts('daily-page-account');
+  // "Now" label
+  const nowEl = document.getElementById('daily-page-now');
+  if(nowEl) nowEl.textContent = new Date().toLocaleDateString('en-GB',{weekday:'short', day:'numeric', month:'short'}) + ' · ' + new Date().toLocaleTimeString('en-US',{hour:'numeric', minute:'2-digit'});
+  // ---- Hero: today + week + avg ----
+  const txs = _todayExpenses().sort((a,b)=>b.date-a.date);
+  const todayTotal = txs.reduce((s,t)=>s+Number(t.amount||0), 0);
+  const todayCount = txs.length;
+  document.getElementById('daily-hero-today').textContent = cur(todayTotal);
+  document.getElementById('daily-hero-today-count').textContent = todayCount;
+  document.getElementById('daily-hero-today-avg').textContent = todayCount ? cur(todayTotal/todayCount) : cur(0);
+  // Week (Mon..Sun current week)
+  const { weekStart, weekEnd, days } = _currentWeekDays();
+  const weekTx = state.transactions.filter(t=>t.type==='expense' && t.date>=weekStart && t.date<weekEnd);
+  const weekTotal = weekTx.reduce((s,t)=>s+Number(t.amount||0), 0);
+  // Last week comparison
+  const lwStart = weekStart - 7*86400000, lwEnd = weekStart;
+  const lastWeekTotal = state.transactions.filter(t=>t.type==='expense' && t.date>=lwStart && t.date<lwEnd).reduce((s,t)=>s+Number(t.amount||0), 0);
+  const weekDelta = lastWeekTotal>0 ? ((weekTotal-lastWeekTotal)/lastWeekTotal*100) : (weekTotal>0 ? 100 : 0);
+  document.getElementById('daily-stat-week').textContent = cur(weekTotal);
+  const weekSub = document.getElementById('daily-stat-week-sub');
+  if(lastWeekTotal===0 && weekTotal===0){
+    weekSub.textContent = 'No spending logged yet this week';
+  } else if(lastWeekTotal===0){
+    weekSub.textContent = 'First week with data — nothing to compare';
+  } else {
+    const arrow = weekDelta>0 ? '▲' : (weekDelta<0 ? '▼' : '·');
+    const cls = weekDelta>0 ? 'var(--coral)' : (weekDelta<0 ? 'var(--green)' : 'var(--ink-mute)');
+    weekSub.innerHTML = `<span style="color:${cls}">${arrow} ${Math.abs(weekDelta).toFixed(0)}%</span> vs last week (${cur(lastWeekTotal)})`;
+  }
+  // 7-day rolling average (today + previous 6 days)
+  const last7Start = new Date(); last7Start.setHours(0,0,0,0); last7Start.setDate(last7Start.getDate()-6);
+  const last7Tx = state.transactions.filter(t=>t.type==='expense' && t.date>=last7Start.getTime());
+  const dayKeysWithData = new Set(last7Tx.map(t=>_dayKey(t.date)));
+  const denom = Math.max(1, dayKeysWithData.size || 7);
+  const avg = last7Tx.reduce((s,t)=>s+Number(t.amount||0),0) / denom;
+  document.getElementById('daily-stat-avg').textContent = cur(avg);
+  // Week strip
+  _renderWeekStrip(days);
+  // Today block
+  const todayBlock = document.getElementById('daily-today-block');
+  if(txs.length===0){
+    todayBlock.innerHTML = '<div class="card"><div class="daily-empty">No expenses logged today yet. Use Quick add above.</div></div>';
+  } else {
+    todayBlock.innerHTML = `<div class="daily-day-head"><div class="day-title">${_humanDayLabel(_todayKey())} <span class="pill">${new Date().toLocaleDateString('en-GB',{day:'numeric', month:'long'})}</span></div><div class="day-total">-${cur(todayTotal)}</div></div><div class="daily-day-body">${txs.map(txRow).join('')}</div>`;
+  }
+  document.getElementById('daily-today-pill').textContent = `${todayCount} item${todayCount===1?'':'s'}`;
+  // Recent days (last 6 days, not including today)
+  const recentBlocks = document.getElementById('daily-recent-blocks');
+  const recentDays = [];
+  for(let i=1; i<=6; i++){
+    const d = new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate()-i);
+    const k = _dayKey(d.getTime());
+    const dayTx = state.transactions.filter(t=>t.type==='expense' && _dayKey(t.date)===k).sort((a,b)=>b.date-a.date);
+    if(dayTx.length>0){
+      recentDays.push({key:k, tx:dayTx, total: dayTx.reduce((s,t)=>s+Number(t.amount||0),0)});
+    }
+  }
+  document.getElementById('daily-recent-pill').textContent = `${recentDays.length} day${recentDays.length===1?'':'s'} with expenses`;
+  if(recentDays.length===0){
+    recentBlocks.innerHTML = '<div class="card"><div class="daily-empty">Nothing logged in the last 6 days.</div></div>';
+  } else {
+    recentBlocks.innerHTML = recentDays.map(d => `
+      <div class="daily-day-block">
+        <div class="daily-day-head"><div class="day-title">${_humanDayLabel(d.key)} <span class="pill">${new Date(d.key.split('-').map((v,i)=>i===1?Number(v)-1:Number(v))).toLocaleDateString('en-GB',{day:'numeric', month:'short'})}</span></div><div class="day-total">-${cur(d.total)}</div></div>
+        <div class="daily-day-body">${d.tx.map(txRow).join('')}</div>
+      </div>
+    `).join('');
+  }
+  // Category breakdown for today
+  const cb = document.getElementById('daily-cat-breakdown');
+  const byCat = {};
+  txs.forEach(t=>{ byCat[t.cat] = (byCat[t.cat]||0) + Number(t.amount||0); });
+  const cbEntries = Object.entries(byCat).sort((a,b)=>b[1]-a[1]);
+  document.getElementById('daily-cat-pill').textContent = cbEntries.length ? `${cbEntries.length} categor${cbEntries.length===1?'y':'ies'}` : '—';
+  if(cbEntries.length===0){
+    cb.innerHTML = '<div class="daily-empty">No expenses to break down yet.</div>';
+  } else {
+    const maxAmt = cbEntries[0][1];
+    cb.innerHTML = cbEntries.map(([catId,amt])=>{
+      const c = state.categories.find(x=>x.id===catId) || {ic:'⋯', name:catId};
+      const pct = maxAmt>0 ? (amt/maxAmt*100) : 0;
+      return `<div class="daily-cat-row-bar">
+        <div class="cat-name"><span class="ic">${c.ic}</span>${c.name}</div>
+        <div class="bar-track2"><div class="bar-fill2" style="width:${pct.toFixed(1)}%"></div></div>
+        <div class="cat-amt">${cur(amt)}</div>
+      </div>`;
+    }).join('');
+  }
+}
+// Returns an array of 7 day objects (Mon..Sun) for the current week, each
+// with a key, Date, and a flag for "today".
+function _currentWeekDays(){
+  const now = new Date();
+  // ISO week starts Monday; we use Monday so weekend isn't split awkwardly.
+  const dow = (now.getDay()+6)%7; // 0=Mon..6=Sun
+  const monday = new Date(now); monday.setHours(0,0,0,0); monday.setDate(monday.getDate()-dow);
+  const sunday = new Date(monday); sunday.setDate(sunday.getDate()+7);
+  const days = [];
+  for(let i=0;i<7;i++){
+    const d = new Date(monday); d.setDate(monday.getDate()+i);
+    days.push({ date:d, key:_dayKey(d.getTime()), isToday: _dayKey(d.getTime())===_todayKey() });
+  }
+  const weekStart = monday.getTime();
+  const weekEnd = sunday.getTime();
+  // Friendly range label, e.g. "1 — 7 Sep"
+  const sameMonth = monday.getMonth()===sunday.getMonth()-1 || (monday.getMonth()===11 && sunday.getMonth()===0);
+  const range = monday.toLocaleDateString('en-GB',{day:'numeric'}) + ' — ' + sunday.toLocaleDateString('en-GB',{day:'numeric', month:'short'});
+  document.getElementById('daily-week-range').textContent = range;
+  return { weekStart, weekEnd, days };
+}
+function _renderWeekStrip(days){
+  const el = document.getElementById('daily-week-grid');
+  if(!el) return;
+  // Build per-day totals for the visible week
+  const byDay = {};
+  state.transactions.filter(t=>t.type==='expense').forEach(t=>{
+    const k = _dayKey(t.date);
+    byDay[k] = (byDay[k]||0) + Number(t.amount||0);
+  });
+  const max = Math.max(1, ...Object.values(byDay));
+  el.innerHTML = days.map(d=>{
+    const amt = byDay[d.key] || 0;
+    const pct = Math.round(amt/max*100);
+    const wd = d.date.toLocaleDateString('en-GB',{weekday:'short'}).slice(0,3);
+    return `<div class="daily-week-day ${d.isToday?'today':''}">
+      <div class="wd-name">${wd}</div>
+      <div class="wd-amt">${amt ? fmt(amt) : '·'}</div>
+      <div class="wd-bar"><div style="width:${pct}%"></div></div>
+    </div>`;
+  }).join('');
 }
 // "Safe to spend today" = what's left of this month's discretionary money, spread evenly over
 // the days remaining in the month. Uses budget envelopes (remaining limit, rollover-aware) when
